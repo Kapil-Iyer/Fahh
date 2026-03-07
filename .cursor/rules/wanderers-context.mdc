@@ -1,0 +1,18 @@
+---
+description: Wanderers product mission, product loop, tech stack, and architecture — read before making product or backend decisions
+alwaysApply: true
+---
+
+# Wanderers project context
+
+Before changing product flow, auth, database, or API design, read **docs/PROJECT_BRAIN.md**.
+
+That file defines:
+
+- **Mission:** Real-world meetups, not scrolling; Waterloo students; @uwaterloo.ca only.
+- **Core loop:** Intent → Bubble → Join → 3–5 group → Chat unlock → Meetup → Photo → Wander Moment → Optional connection.
+- **Stack:** Next.js, Tailwind, **Supabase (Auth + Postgres + Realtime)** only (no Auth0), Gemini, Cloudinary, Vercel.
+- **Schema:** users, bubbles, bubble_members, messages, connections, meetup_photos.
+- **Rules:** No empty screens (seed data), bubble expiration, location privacy until group forms, chat at 3–5 members.
+
+Keep code modular, typed, and aligned with that doc. Do not add features that fall outside the core loop.
