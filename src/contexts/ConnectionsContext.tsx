@@ -178,7 +178,7 @@ export function ConnectionsProvider({ children }: { children: React.ReactNode })
         const currentEvent = getCurrentEvent(name);
         return { id, name, avatar, currentEvent };
       })
-      .filter((x): x is ConnectedFriendEntry => x != null)
+      .filter((x): x is NonNullable<typeof x> => x !== null)
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [connectedIds, extraProfiles]);
 
