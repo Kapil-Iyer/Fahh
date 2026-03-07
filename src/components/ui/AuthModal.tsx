@@ -1,15 +1,17 @@
+"use client";
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 
 export default function AuthModal() {
   const [mode, setMode] = useState<"choice" | "signup" | "login" | "verify">("choice");
   const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState("");
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleSignUp = (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,12 +20,12 @@ export default function AuthModal() {
 
   const handleVerify = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/onboarding");
+    router.push("/onboarding");
   };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/home");
+    router.push("/home");
   };
 
   return (

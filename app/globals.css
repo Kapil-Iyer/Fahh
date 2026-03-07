@@ -104,11 +104,6 @@
     @apply bg-card/95 backdrop-blur-2xl border border-border/60;
   }
 
-  /* App layout & template classes (Tailwind-only) */
-  #root {
-    @apply max-w-7xl mx-auto py-8 text-center;
-  }
-
   .logo {
     @apply h-24 py-6 will-change-[filter] transition-[filter] duration-300;
   }

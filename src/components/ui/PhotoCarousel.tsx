@@ -25,7 +25,7 @@ function CardColumn({
 
   return (
     <div className="h-full overflow-hidden relative">
-      <div className={direction === "up" ? "animate-scroll-up" : "animate-scroll-down"}>
+      <div className={direction === "up" ? "animate-scroll-up hover:animate-scroll-up-slow" : "animate-scroll-down hover:animate-scroll-down-slow"}>
         {doubled.map((card, i) => (
           <div key={i} className="p-3">
             <div className="rounded-2xl overflow-hidden shadow-card-hover relative group">
