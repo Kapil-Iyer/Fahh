@@ -14,7 +14,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="glass-strong border-b border-border z-40">
+      <header className="bg-card border-b border-border z-40">
         <div className="max-w-lg mx-auto flex items-center gap-3 px-4 h-14">
           <button onClick={() => router.push("/messages")} className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-5 h-5" />

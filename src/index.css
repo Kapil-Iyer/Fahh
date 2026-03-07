@@ -6,81 +6,54 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 222 47% 11%;
+    /* Core black + teal palette */
+    --background: 0 0% 3%;
+    --foreground: 0 0% 96%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 217 94% 53%;
+    --primary: 174 80% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 214 32% 95%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 174 40% 12%;
+    --secondary-foreground: 0 0% 92%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 0 0% 30%;
+    --muted-foreground: 0 0% 70%;
 
-    --accent: 217 94% 95%;
-    --accent-foreground: 217 94% 53%;
+    --accent: 174 72% 22%;
+    --accent-foreground: 174 72% 88%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 94% 53%;
+    --border: 174 32% 20%;
+    --input: 0 0% 9%;
+    --ring: 174 80% 50%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 217 94% 53%;
+    /* Sidebar */
+    --sidebar-background: 0 0% 2%;
+    --sidebar-foreground: 0 0% 88%;
+    --sidebar-primary: 174 80% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 94% 95%;
-    --sidebar-accent-foreground: 217 94% 53%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217 94% 53%;
+    --sidebar-accent: 174 72% 20%;
+    --sidebar-accent-foreground: 174 72% 90%;
+    --sidebar-border: 174 32% 20%;
+    --sidebar-ring: 174 80% 50%;
 
-    --wanderers-blue: 217 94% 53%;
-    --wanderers-blue-light: 217 94% 95%;
-    --wanderers-blue-dark: 217 94% 40%;
+    /* Brand tokens */
+    --wanderers-teal: 174 80% 45%;
+    --wanderers-teal-light: 174 72% 28%;
+    --wanderers-teal-dark: 174 80% 32%;
     --wanderers-success: 142 76% 36%;
     --wanderers-warning: 38 92% 50%;
-    --wanderers-surface: 220 14% 96%;
-  }
-
-  .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217 94% 53%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217 32% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 32% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 32% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 32% 17%;
-    --input: 217 32% 17%;
-    --ring: 217 94% 53%;
-    --sidebar-background: 222 47% 6%;
-    --sidebar-foreground: 240 5% 96%;
-    --sidebar-primary: 217 94% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 32% 17%;
-    --sidebar-accent-foreground: 240 5% 96%;
-    --sidebar-border: 240 4% 16%;
-    --sidebar-ring: 217 94% 53%;
+    --wanderers-surface: 0 0% 7%;
   }
 }
 
@@ -104,7 +77,6 @@
     @apply bg-card/95 backdrop-blur-2xl border border-border/60;
   }
 
-  /* App layout & template classes (Tailwind-only) */
   #root {
     @apply max-w-7xl mx-auto py-8 text-center;
   }
@@ -114,11 +86,11 @@
   }
 
   .logo:hover {
-    @apply drop-shadow-[0_0_2em_#646cffaa];
+    @apply drop-shadow-[0_0_2em_#2dd4bf88];
   }
 
   .logo.react:hover {
-    @apply drop-shadow-[0_0_2em_#61dafbaa];
+    @apply drop-shadow-[0_0_2em_#2dd4bf88];
   }
 
   @media (prefers-reduced-motion: no-preference) {

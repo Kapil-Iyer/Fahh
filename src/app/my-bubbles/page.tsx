@@ -8,8 +8,8 @@ export default function MyBubblesPage() {
   const myBubbles = mockBubbles.filter((_, i) => i % 2 === 0);
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-40 glass-strong border-b border-border">
+    <div className="min-h-screen pb-20">
+      <header className="sticky top-0 z-40 bg-card border-b border-border">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center">
           <h1 className="text-lg font-bold text-foreground">My Bubbles</h1>
         </div>

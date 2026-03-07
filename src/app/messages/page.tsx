@@ -9,7 +9,7 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-40 glass-strong border-b border-border">
+      <header className="sticky top-0 z-40 bg-card border-b border-border">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center">
           <h1 className="text-lg font-bold text-foreground">Messages</h1>
         </div>
