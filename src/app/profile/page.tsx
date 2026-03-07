@@ -20,7 +20,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-40 glass-strong border-b border-border">
+      <header className="sticky top-0 z-40 bg-card border-b border-border">
         <div className="max-w-lg mx-auto flex items-center gap-3 px-4 h-14">
           <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-5 h-5" />
@@ -43,11 +43,10 @@ export default function ProfilePage() {
           <p className="text-sm text-muted-foreground">University of Waterloo</p>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mt-6">
+        <div className="grid grid-cols-2 gap-3 mt-6">
           {[
             { label: "Connections", value: "24" },
-            { label: "Bubbles", value: "12" },
-            { label: "Traits", value: "8" },
+            { label: "Events Attended", value: "12" },
           ].map((stat) => (
             <div key={stat.label} className="bg-card border border-border rounded-2xl p-3 text-center">
               <p className="text-xl font-bold text-foreground">{stat.value}</p>

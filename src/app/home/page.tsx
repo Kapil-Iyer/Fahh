@@ -16,12 +16,12 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-40 glass-strong border-b border-border">
-        <div className="max-w-lg mx-auto flex items-center justify-between px-4 h-14">
-          <h1 className="text-xl font-extrabold text-foreground">
-            <span className="text-primary">W</span>anderers
-          </h1>
-          <button onClick={() => router.push("/profile")} className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
+      <header className="sticky top-0 z-40 bg-card border-b border-border">
+        <div className="max-w-lg mx-auto flex items-center justify-end px-4 h-14">
+          <button
+            onClick={() => router.push("/profile")}
+            className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold"
+          >
             JD
           </button>
         </div>
