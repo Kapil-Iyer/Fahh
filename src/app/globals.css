@@ -48,6 +48,16 @@
     @apply border-border;
   }
 
+  /* Hide all scrollbars globally - scroll still works */
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
+  }
+
   body {
     @apply min-h-screen text-foreground antialiased;
     font-family: 'Plus Jakarta Sans', sans-serif;
@@ -93,4 +103,5 @@
   .card {
     @apply p-8;
   }
+
 }

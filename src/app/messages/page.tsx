@@ -1,21 +1,31 @@
 "use client";
 
+/**
+ * MESSAGES PAGE - API INTEGRATION REFERENCE
+ * -----------------------------------------------------------------------------
+ * DATA SOURCE: useConversations().conversations
+ * - Current: ConversationsContext (mockConversations + joinedConversations)
+ * - Replace with: GET /api/conversations or Supabase messages
+ * -----------------------------------------------------------------------------
+ */
+
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/ui/BottomNav";
-import { mockConversations } from "@/lib/mockData";
+import { useConversations } from "@/contexts/ConversationsContext";
 
 export default function MessagesPage() {
   const router = useRouter();
+  const { conversations } = useConversations();
 
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-40 bg-card border-b border-border">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center">
+        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center">
           <h1 className="text-lg font-bold text-foreground">Messages</h1>
         </div>
       </header>
-      <div className="max-w-lg mx-auto">
-        {mockConversations.map((convo) => (
+      <div className="max-w-3xl mx-auto">
+        {conversations.map((convo) => (
           <button
             key={convo.id}
             onClick={() => router.push(`/chat/${convo.id}`)}

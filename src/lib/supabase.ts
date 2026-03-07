@@ -1,3 +1,12 @@
+/**
+ * SUPABASE CLIENT - Database / Auth
+ * -----------------------------------------------------------------------------
+ * Env: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
+ * Use for: users, bubbles, bubble_members, connections, messages, meetup_photos
+ * Auth: Supabase Auth (not Auth0 per project rules)
+ * -----------------------------------------------------------------------------
+ */
+
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;

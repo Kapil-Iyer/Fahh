@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * ONBOARDING PAGE - API INTEGRATION REFERENCE
+ * -----------------------------------------------------------------------------
+ * DATA: interestOptions → lib/mockData.ts
+ * On "Confirm": POST /api/users/me (save interests) then redirect
+ * -----------------------------------------------------------------------------
+ */
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -30,11 +38,11 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <div className="flex-1 max-w-lg mx-auto w-full px-6 py-10">
+       <div className="flex-1 max-w-lg mx-auto w-full px-6 py-10">
         <div className="animate-fade-in">
           <h1 className="text-2xl font-extrabold text-foreground">What are you into?</h1>
           <p className="text-muted-foreground mt-1 text-sm">Pick your interests so we can match you with the right Bubbles.</p>
-        </div>
+        </div>  
 
         <div className="flex flex-wrap gap-2.5 mt-8">
           {[...interestOptions, ...customs].map((interest) => {

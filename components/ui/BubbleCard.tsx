@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Clock, MapPin, Users } from "lucide-react";
 import type { Bubble } from "@/lib/mockData";
@@ -33,7 +34,9 @@ export default function BubbleCard({ bubble }: { bubble: Bubble }) {
           </div>
           <span className="text-xs text-muted-foreground">{bubble.creator}</span>
         </div>
-        <Button size="sm" className="rounded-xl text-xs h-8 px-4 font-semibold">Join Bubble</Button>
+        <Button size="sm" className="rounded-xl text-xs h-8 px-4 font-semibold" asChild>
+          <Link href="/map">View Map</Link>
+        </Button>
       </div>
     </div>
   );

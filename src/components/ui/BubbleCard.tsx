@@ -1,10 +1,23 @@
 "use client";
 
+/**
+ * BUBBLE CARD - Activity/event card
+ * -----------------------------------------------------------------------------
+ * Props: bubble (from mockBubbles or API). View Map → MapOverlayContext.
+ * API: Bubble data from GET /api/bubbles
+ * -----------------------------------------------------------------------------
+ */
+
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Clock, MapPin, Users } from "lucide-react";
 import type { Bubble } from "@/lib/mockData";
+import { useMapOverlay } from "@/contexts/MapOverlayContext";
+import { ProfileLink } from "@/components/ProfileLink";
 
 export default function BubbleCard({ bubble }: { bubble: Bubble }) {
+  const mapOverlay = useMapOverlay();
+
   return (
     <div className="bg-card rounded-2xl p-4 shadow-card hover:shadow-card-hover transition-shadow border border-border">
       <div className="flex items-start gap-3">
@@ -33,9 +46,19 @@ export default function BubbleCard({ bubble }: { bubble: Bubble }) {
           <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-[10px] font-bold">
             {bubble.creatorAvatar}
           </div>
-          <span className="text-xs text-muted-foreground">{bubble.creator}</span>
+          <ProfileLink name={bubble.creator} avatar={bubble.creatorAvatar} className="text-xs text-muted-foreground">
+            {bubble.creator}
+          </ProfileLink>
         </div>
-        <Button size="sm" className="rounded-xl text-xs h-8 px-4 font-semibold">Join Bubble</Button>
+        {mapOverlay ? (
+          <Button size="sm" className="rounded-xl text-xs h-8 px-4 font-semibold" onClick={() => mapOverlay.openMap()}>
+            View Map
+          </Button>
+        ) : (
+          <Button size="sm" className="rounded-xl text-xs h-8 px-4 font-semibold" asChild>
+            <Link href="/map">View Map</Link>
+          </Button>
+        )}
       </div>
     </div>
   );

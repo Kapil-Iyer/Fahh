@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * AUTH MODAL - Login / Signup
+ * -----------------------------------------------------------------------------
+ * Calls: POST /api/auth/signup, POST /api/auth/login (both mock - always succeed)
+ * Replace with Supabase Auth (signUp, signInWithOtp) per project rules.
+ * -----------------------------------------------------------------------------
+ */
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +30,12 @@ export default function AuthModal() {
     const name = (form.elements.namedItem("name") as HTMLInputElement)?.value;
     const email = (form.elements.namedItem("email") as HTMLInputElement)?.value;
     const password = (form.elements.namedItem("password") as HTMLInputElement)?.value;
+    const confirmPassword = (form.elements.namedItem("confirm") as HTMLInputElement)?.value;
     if (!name || !email || !password) return;
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/auth/signup", {
@@ -70,141 +83,193 @@ export default function AuthModal() {
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
+    <div
+      className="w-full max-w-md animate-fade-in"
+      style={{
+        background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)",
+        borderRadius: "1.5rem",
+        border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5), inset 0 1px 0 0 rgba(255,255,255,0.05)",
+        backdropFilter: "blur(24px)",
+        padding: "2rem",
+      }}
+    >
       {/* Logo */}
-      <div className="text-center mb-6">
-        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
-          <span className="text-primary">W</span>anderers
+      <div className="text-center mb-8">
+        <h1
+          className="text-4xl font-extrabold tracking-tight"
+          style={{
+            background: "linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}
+        >
+          Wanderers
         </h1>
-        <p className="text-muted-foreground text-sm mt-1">Find your people. Start something.</p>
+        <p className="text-white/50 text-sm mt-2 font-medium">Find your people. Start something.</p>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-destructive/10 text-destructive text-sm">
+        <div className="mb-5 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
           {error}
         </div>
       )}
 
       {mode === "choice" && (
         <div className="space-y-3">
-          <Button onClick={() => { setMode("signup"); setError(null); }} className="w-full h-12 text-base font-semibold rounded-xl">
+          <Button
+            onClick={() => { setMode("signup"); setError(null); }}
+            className="w-full h-12 text-base font-semibold rounded-xl bg-cyan-500 hover:bg-cyan-400 text-cyan-950 shadow-lg shadow-cyan-500/25 transition-all hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98]"
+          >
             Sign Up
           </Button>
-          <Button onClick={() => { setMode("login"); setError(null); }} variant="outline" className="w-full h-12 text-base font-semibold rounded-xl">
-            Log In
-          </Button>
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
-            <div className="relative flex justify-center text-xs"><span className="bg-white px-2 text-muted-foreground">or</span></div>
-          </div>
           <Button
-            type="button"
+            onClick={() => { setMode("login"); setError(null); }}
             variant="outline"
-            className="w-full h-12 rounded-xl gap-2"
-            onClick={() => router.push("/home")}
+            className="w-full h-12 text-base font-semibold rounded-xl border-white/20 bg-white/5 hover:bg-white/10 text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-            Continue with Google
+            Log In
           </Button>
         </div>
       )}
 
       {mode === "signup" && (
-        <form onSubmit={handleSignUp} className="space-y-4">
+        <form onSubmit={handleSignUp} className="space-y-4 animate-fade-in">
           <div className="space-y-2">
-            <Label htmlFor="name">First Name</Label>
+            <Label htmlFor="name" className="text-white/70 text-sm font-medium">First Name</Label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="name" name="name" placeholder="Your first name" className="pl-10 h-11 rounded-xl" required />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <Input
+                id="name"
+                name="name"
+                placeholder="Your first name"
+                className="pl-10 h-11 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-cyan-500/50 focus:ring-cyan-500/20"
+                required
+              />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-white/70 text-sm font-medium">Email</Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="email" name="email" type="email" placeholder="you@email.com" className="pl-10 h-11 rounded-xl" required />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="you@uwaterloo.ca"
+                className="pl-10 h-11 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-cyan-500/50 focus:ring-cyan-500/20"
+                required
+              />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Create Password</Label>
+            <Label htmlFor="password" className="text-white/70 text-sm font-medium">Create Password</Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="password" name="password" type={showPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10 h-11 rounded-xl" required />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                className="pl-10 pr-10 h-11 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-cyan-500/50 focus:ring-cyan-500/20"
+                required
+              />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70">
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirm">Confirm Password</Label>
+            <Label htmlFor="confirm" className="text-white/70 text-sm font-medium">Confirm Password</Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="confirm" type="password" placeholder="••••••••" className="pl-10 h-11 rounded-xl" required />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <Input
+                id="confirm"
+                name="confirm"
+                type="password"
+                placeholder="••••••••"
+                className="pl-10 h-11 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-cyan-500/50 focus:ring-cyan-500/20"
+                required
+              />
             </div>
           </div>
-          <Button type="submit" className="w-full h-12 rounded-xl text-base font-semibold" disabled={loading}>
+          <Button
+            type="submit"
+            className="w-full h-12 rounded-xl text-base font-semibold bg-cyan-500 hover:bg-cyan-400 text-cyan-950 shadow-lg shadow-cyan-500/25 disabled:opacity-50"
+            disabled={loading}
+          >
             {loading ? "Creating…" : "Create Account"}
           </Button>
-          <button type="button" onClick={() => setMode("choice")} className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors">← Back</button>
+          <button type="button" onClick={() => setMode("choice")} className="w-full text-sm text-white/50 hover:text-white transition-colors">← Back</button>
         </form>
       )}
 
       {mode === "verify" && (
-        <form onSubmit={handleVerify} className="space-y-4 text-center">
-          <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center mx-auto mb-2">
-            <Mail className="w-8 h-8 text-primary" />
+        <form onSubmit={handleVerify} className="space-y-5 text-center animate-fade-in">
+          <div className="w-16 h-16 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center mx-auto">
+            <Mail className="w-8 h-8 text-cyan-400" />
           </div>
-          <h2 className="text-xl font-bold text-foreground">Check your email</h2>
-          <p className="text-sm text-muted-foreground">We sent a 6-digit code to your email</p>
+          <h2 className="text-xl font-bold text-white">Check your email</h2>
+          <p className="text-sm text-white/50">We sent a 6-digit code to your email</p>
           <Input
             value={otp}
-            onChange={(e) => setOtp(e.target.value)}
+            onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
             placeholder="000000"
             maxLength={6}
-            className="text-center text-2xl tracking-[0.5em] h-14 rounded-xl font-mono"
+            className="text-center text-2xl tracking-[0.5em] h-14 rounded-xl font-mono bg-white/5 border-white/10 text-white"
           />
-          <Button type="submit" className="w-full h-12 rounded-xl text-base font-semibold" disabled={otp.length < 6}>
+          <Button type="submit" className="w-full h-12 rounded-xl text-base font-semibold bg-cyan-500 hover:bg-cyan-400 text-cyan-950" disabled={otp.length < 6}>
             Verify
           </Button>
-          <button type="button" onClick={() => router.push("/onboarding")} className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors mt-2">
+          <button type="button" onClick={() => router.push("/onboarding")} className="block w-full text-sm text-white/50 hover:text-white transition-colors">
             Skip for now →
           </button>
-          <button type="button" onClick={() => setMode("signup")} className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors">← Back</button>
+          <button type="button" onClick={() => setMode("signup")} className="block w-full text-sm text-white/50 hover:text-white transition-colors">← Back</button>
         </form>
       )}
 
       {mode === "login" && (
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4 animate-fade-in">
           <div className="space-y-2">
-            <Label htmlFor="loginEmail">Email</Label>
+            <Label htmlFor="loginEmail" className="text-white/70 text-sm font-medium">Email</Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="loginEmail" name="loginEmail" type="email" placeholder="you@email.com" className="pl-10 h-11 rounded-xl" required />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <Input
+                id="loginEmail"
+                name="loginEmail"
+                type="email"
+                placeholder="you@uwaterloo.ca"
+                className="pl-10 h-11 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-cyan-500/50 focus:ring-cyan-500/20"
+                required
+              />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="loginPassword">Password</Label>
+            <Label htmlFor="loginPassword" className="text-white/70 text-sm font-medium">Password</Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="loginPassword" name="loginPassword" type={showPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10 h-11 rounded-xl" required />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <Input
+                id="loginPassword"
+                name="loginPassword"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                className="pl-10 pr-10 h-11 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-cyan-500/50 focus:ring-cyan-500/20"
+                required
+              />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70">
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
-          <Button type="submit" className="w-full h-12 rounded-xl text-base font-semibold" disabled={loading}>
+          <Button
+            type="submit"
+            className="w-full h-12 rounded-xl text-base font-semibold bg-cyan-500 hover:bg-cyan-400 text-cyan-950 shadow-lg shadow-cyan-500/25 disabled:opacity-50"
+            disabled={loading}
+          >
             {loading ? "Logging in…" : "Log In"}
           </Button>
-          <Button
-            variant="outline"
-            type="button"
-            className="w-full h-12 rounded-xl gap-2"
-            onClick={() => router.push("/home")}
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-            Continue with Google
-          </Button>
-          <button type="button" onClick={() => setMode("choice")} className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors">← Back</button>
+          <button type="button" onClick={() => setMode("choice")} className="w-full text-sm text-white/50 hover:text-white transition-colors">← Back</button>
         </form>
       )}
     </div>

@@ -48,7 +48,7 @@ export default function Profile() {
         <div className="grid grid-cols-3 gap-3 mt-6">
           {[
             { label: "Connections", value: "24" },
-            { label: "events attended", value: "12" },
+            { label: "Events Attended", value: "12" },
             
           ].map((stat) => (
             <div key={stat.label} className="bg-card border border-border rounded-2xl p-3 text-center">

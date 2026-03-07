@@ -1,16 +1,32 @@
 "use client";
 
+/**
+ * PROFILE PAGE - API INTEGRATION REFERENCE
+ * -----------------------------------------------------------------------------
+ * DATA SOURCES (replace with API):
+ * - connectionsCount → ConnectionsContext
+ * - personalityTraits, interestOptions, mockBubbles → lib/mockData.ts
+ * - userInterests (local state) → sync with PATCH /api/users/me (interests)
+ * - Stats (Connections, Events) → GET /api/users/me
+ * - Past Bubbles → GET /api/users/me/bubbles
+ * -----------------------------------------------------------------------------
+ */
+
 import { useState } from "react";
+import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Camera, Edit2 } from "lucide-react";
+import { ArrowLeft, Camera, Edit2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/ui/BottomNav";
 import { personalityTraits, mockBubbles, interestOptions } from "@/lib/mockData";
+import { useConnections } from "@/contexts/ConnectionsContext";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { connectionsCount } = useConnections();
   const [editingInterests, setEditingInterests] = useState(false);
   const [userInterests, setUserInterests] = useState(interestOptions.slice(0, 6));
+  const [customInterest, setCustomInterest] = useState("");
 
   const toggleInterest = (interest: string) => {
     setUserInterests((prev) =>
@@ -18,10 +34,18 @@ export default function ProfilePage() {
     );
   };
 
+  const addCustomInterest = () => {
+    const trimmed = customInterest.trim();
+    if (trimmed && !userInterests.includes(trimmed)) {
+      setUserInterests((prev) => [...prev, trimmed]);
+      setCustomInterest("");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-40 bg-card border-b border-border">
-        <div className="max-w-lg mx-auto flex items-center gap-3 px-4 h-14">
+        <div className="max-w-3xl mx-auto flex items-center gap-3 px-4 h-14">
           <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -29,7 +53,7 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-4 py-6">
+      <div className="max-w-3xl mx-auto px-4 py-6">
         <div className="flex flex-col items-center">
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-2xl font-bold">
@@ -45,7 +69,7 @@ export default function ProfilePage() {
 
         <div className="grid grid-cols-2 gap-3 mt-6">
           {[
-            { label: "Connections", value: "24" },
+            { label: "Connections", value: String(connectionsCount) },
             { label: "Events Attended", value: "12" },
           ].map((stat) => (
             <div key={stat.label} className="bg-card border border-border rounded-2xl p-3 text-center">
@@ -80,22 +104,44 @@ export default function ProfilePage() {
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
-            {(editingInterests ? interestOptions : userInterests).map((interest) => {
-              const isSelected = userInterests.includes(interest);
-              return (
-                <button
-                  key={interest}
-                  onClick={() => editingInterests && toggleInterest(interest)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                    isSelected
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground"
-                  } ${!editingInterests ? "cursor-default" : ""}`}
-                >
-                  {interest}
-                </button>
-              );
-            })}
+            {userInterests.map((interest) => (
+              <button
+                key={interest}
+                onClick={() => editingInterests && toggleInterest(interest)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors bg-primary text-primary-foreground ${!editingInterests ? "cursor-default" : ""}`}
+              >
+                {interest}
+              </button>
+            ))}
+            {editingInterests && (
+              <>
+                <div className="flex gap-2 items-center w-full">
+                  <Input
+                    value={customInterest}
+                    onChange={(e) => setCustomInterest(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomInterest())}
+                    placeholder="Type and add your own..."
+                    className="h-8 flex-1 max-w-[180px] text-xs rounded-full border-border"
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomInterest}
+                    className="w-8 h-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors shrink-0"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                {interestOptions.filter((i) => !userInterests.includes(i)).map((interest) => (
+                  <button
+                    key={interest}
+                    onClick={() => toggleInterest(interest)}
+                    className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground"
+                  >
+                    {interest}
+                  </button>
+                ))}
+              </>
+            )}
           </div>
         </div>
 

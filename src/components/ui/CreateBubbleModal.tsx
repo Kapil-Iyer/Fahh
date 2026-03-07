@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * CREATE BUBBLE MODAL - Start new activity
+ * -----------------------------------------------------------------------------
+ * Form: title, category, description. Currently no submit→API.
+ * API: POST /api/bubbles with form data. Redirect or refresh bubbles list.
+ * -----------------------------------------------------------------------------
+ */
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

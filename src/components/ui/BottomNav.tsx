@@ -1,10 +1,20 @@
 "use client";
 
+/**
+ * BOTTOM NAV - Sidebar (desktop) + bottom bar (mobile)
+ * -----------------------------------------------------------------------------
+ * Connected friends: useConnections().getConnectedFriends()
+ * Replaces: mockConnectedFriends. Updates in real time when connections change.
+ * -----------------------------------------------------------------------------
+ */
+
 import { Home, Compass, MessageCircle, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import logo from "../../../components/ui/assets/logo.jpg";
+import { ProfileLink } from "@/components/ProfileLink";
+import { useConnections } from "@/contexts/ConnectionsContext";
 
 const tabs = [
   { icon: Home, label: "Home", path: "/home" },
@@ -15,6 +25,8 @@ const tabs = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { getConnectedFriends } = useConnections();
+  const connectedFriends = getConnectedFriends();
 
   return (
     <>
@@ -33,7 +45,7 @@ export default function BottomNav() {
             <span className="text-primary">W</span>anderers
           </span>
         </div>
-        <div className="flex-1 py-4">
+        <div className="py-4 flex flex-col min-h-0">
           <div className="flex flex-col gap-1 px-2">
             {tabs.map((tab) => {
               const active = pathname === tab.path;
@@ -53,12 +65,32 @@ export default function BottomNav() {
               );
             })}
           </div>
+          <div className="pt-4 mt-2 px-3 border-t border-border">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">Connected</p>
+            <div className="space-y-1.5">
+              {connectedFriends.slice(0, 9).map((friend) => (
+                <div key={friend.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-secondary/50 transition-colors">
+                  <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center text-[10px] font-bold text-accent-foreground shrink-0">
+                    {friend.avatar}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <ProfileLink name={friend.name} avatar={friend.avatar} className="text-xs font-medium text-foreground truncate block">
+                      {friend.name}
+                    </ProfileLink>
+                    {friend.currentEvent && (
+                      <p className="text-[10px] text-primary truncate">{friend.currentEvent}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </nav>
 
       {/* Mobile bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 lg:hidden">
-        <div className="max-w-lg mx-auto flex">
+        <div className="max-w-3xl mx-auto flex">
           {tabs.map((tab) => {
             const active = pathname === tab.path;
             return (
