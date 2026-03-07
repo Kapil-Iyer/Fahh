@@ -1,16 +1,18 @@
+"use client";
+
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronDown, MapPin, Plus, List, Map } from "lucide-react";
 import BottomNav from "@/components/ui/BottomNav";
 import BubbleCard from "@/components/ui/BubbleCard";
 import CreateBubbleModal from "@/components/ui/CreateBubbleModal";
 import { mockBubbles, filterChips } from "@/lib/mockData";
-import { useNavigate } from "react-router-dom";
 
 export default function Home() {
   const [activeFilter, setActiveFilter] = useState("Happening Now");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [createOpen, setCreateOpen] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -20,7 +22,7 @@ export default function Home() {
           <h1 className="text-xl font-extrabold text-foreground">
             <span className="text-primary">W</span>anderers
           </h1>
-          <button onClick={() => navigate("/profile")} className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
+          <button onClick={() => router.push("/profile")} className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
             JD
           </button>
         </div>

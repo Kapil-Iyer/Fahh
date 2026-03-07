@@ -1,9 +1,11 @@
-import { useNavigate } from "react-router-dom";
+"use client";
+
+import { useRouter } from "next/navigation";
 import BottomNav from "@/components/ui/BottomNav";
 import { mockConversations } from "@/lib/mockData";
 
 export default function Messages() {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -16,7 +18,7 @@ export default function Messages() {
         {mockConversations.map((convo) => (
           <button
             key={convo.id}
-            onClick={() => navigate(`/chat/${convo.id}`)}
+            onClick={() => router.push(`/chat/${convo.id}`)}
             className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/50 transition-colors border-b border-border"
           >
             <div className="w-11 h-11 rounded-full bg-accent flex items-center justify-center text-lg shrink-0">

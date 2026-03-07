@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { interestOptions } from "@/lib/mockData";
@@ -9,7 +11,7 @@ export default function Onboarding() {
   const [selected, setSelected] = useState<string[]>([]);
   const [custom, setCustom] = useState("");
   const [customs, setCustoms] = useState<string[]>([]);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const toggle = (interest: string) => {
     setSelected((prev) =>
@@ -69,7 +71,7 @@ export default function Onboarding() {
 
         <div className="mt-10">
           <Button
-            onClick={() => navigate("/home")}
+            onClick={() => router.push("/home")}
             disabled={selected.length === 0}
             className="w-full h-12 rounded-xl text-base font-semibold"
           >

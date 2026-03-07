@@ -1,12 +1,15 @@
+"use client";
+
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { mockConversations, mockMessages } from "@/lib/mockData";
 
 export default function Chat() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const params = useParams();
+  const id = params.id as string;
+  const router = useRouter();
   const [message, setMessage] = useState("");
   const convo = mockConversations.find((c) => c.id === id);
 
@@ -15,11 +18,11 @@ export default function Chat() {
       {/* Header */}
       <header className="glass-strong border-b border-border z-40">
         <div className="max-w-lg mx-auto flex items-center gap-3 px-4 h-14">
-          <button onClick={() => navigate("/messages")} className="text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={() => router.push("/messages")} className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-sm">
-            {convo?.avatar.length! <= 2 ? (
+            {(convo?.avatar?.length ?? 0) <= 2 ? (
               <span className="text-[10px] font-bold text-accent-foreground">{convo?.avatar}</span>
             ) : (
               convo?.avatar

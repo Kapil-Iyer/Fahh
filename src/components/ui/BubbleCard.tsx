@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Clock, MapPin, Users } from "lucide-react";
 import type { Bubble } from "@/lib/mockData";

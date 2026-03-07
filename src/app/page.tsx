@@ -1,3 +1,5 @@
+"use client";
+
 import PhotoCarousel from "@/components/ui/PhotoCarousel";
 import AuthModal from "@/components/ui/AuthModal";
 

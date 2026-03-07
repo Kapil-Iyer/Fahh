@@ -1,12 +1,14 @@
+"use client";
+
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Camera, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/ui/BottomNav";
 import { personalityTraits, mockBubbles, interestOptions } from "@/lib/mockData";
 
 export default function Profile() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [editingInterests, setEditingInterests] = useState(false);
   const [userInterests, setUserInterests] = useState(interestOptions.slice(0, 6));
 
@@ -20,7 +22,7 @@ export default function Profile() {
     <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-40 glass-strong border-b border-border">
         <div className="max-w-lg mx-auto flex items-center gap-3 px-4 h-14">
-          <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-lg font-bold text-foreground">Profile</h1>
@@ -121,7 +123,7 @@ export default function Profile() {
         <Button
           variant="outline"
           className="w-full mt-8 rounded-xl h-11"
-          onClick={() => navigate("/")}
+          onClick={() => router.push("/")}
         >
           Log Out
         </Button>

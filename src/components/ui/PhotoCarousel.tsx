@@ -1,3 +1,5 @@
+"use client";
+
 // Activity images - use placeholder until real assets are added
 const placeholderImg = "/placeholder.svg";
 const leftCards = [

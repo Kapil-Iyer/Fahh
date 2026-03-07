@@ -1,3 +1,5 @@
+"use client";
+
 import BottomNav from "@/components/ui/BottomNav";
 import BubbleCard from "@/components/ui/BubbleCard";
 import { mockBubbles } from "@/lib/mockData";

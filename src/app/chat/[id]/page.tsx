@@ -20,7 +20,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-sm">
-            {convo?.avatar.length! <= 2 ? (
+            {(convo?.avatar?.length ?? 0) <= 2 ? (
               <span className="text-[10px] font-bold text-accent-foreground">{convo?.avatar}</span>
             ) : (
               convo?.avatar
