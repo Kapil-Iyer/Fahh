@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
       if (!membership) {
         return NextResponse.json(
-          { success: false, error: 'Not a member of this bubble' },
+          { success: false, error: 'Join this bubble from the Map first (tap Join Bubble), then you can save and post a moment when you end the event.' },
           { status: 403 }
         );
       }

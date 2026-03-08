@@ -119,7 +119,13 @@ export default function EndEventModal({ bubble, onClose, onAddPost }: EndEventMo
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!confirmRes.ok) {
-          toast.error("Event could not be ended.");
+          const errBody = await confirmRes.json().catch(() => ({}));
+          const msg = errBody?.error || confirmRes.statusText;
+          if (confirmRes.status === 403) {
+            toast.error("You're not a member of this bubble. Join the bubble from the chat first, then end the event.");
+          } else {
+            toast.error(msg || "Event could not be ended.");
+          }
           return;
         }
       }

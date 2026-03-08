@@ -8,6 +8,7 @@
  * -----------------------------------------------------------------------------
  */
 
+import { useState, useEffect } from "react";
 import { Home, Compass, MessageCircle, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -25,8 +26,14 @@ const tabs = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const { getConnectedFriends } = useConnections();
   const connectedFriends = getConnectedFriends();
+
+  // Use pathname for "active" only after mount to avoid server/client hydration mismatch
+  const activePath = mounted ? pathname : null;
 
   return (
     <>
@@ -48,7 +55,7 @@ export default function BottomNav() {
         <div className="py-4 flex flex-col min-h-0">
           <div className="flex flex-col gap-1 px-2">
             {tabs.map((tab) => {
-              const active = pathname === tab.path;
+              const active = activePath === tab.path;
               return (
                 <Link
                   key={tab.path}
@@ -92,7 +99,7 @@ export default function BottomNav() {
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 lg:hidden">
         <div className="max-w-3xl mx-auto flex">
           {tabs.map((tab) => {
-            const active = pathname === tab.path;
+            const active = activePath === tab.path;
             return (
               <Link
                 key={tab.path}

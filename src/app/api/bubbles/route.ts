@@ -44,6 +44,8 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date(
       new Date(start_time).getTime() + duration_minutes * 60_000
     );
+    const duration = Number(duration_minutes);
+    const time_window = duration >= 60 ? `${Math.floor(duration / 60)} hr` : `${duration} min`;
 
     const admin = getSupabaseAdmin();
 
@@ -53,10 +55,10 @@ export async function POST(request: NextRequest) {
         creator_id: user.id,
         activity: String(activity).trim(),
         zone: String(zone).trim(),
+        time_window,
         start_time: new Date(start_time).toISOString(),
-        duration_minutes: Number(duration_minutes),
+        duration_minutes: duration,
         max_members: max_members != null ? Number(max_members) : null,
-        description: description != null ? String(description).trim() : null,
         expires_at: expiresAt.toISOString(),
         status: "open",
       })

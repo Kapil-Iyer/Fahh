@@ -1,15 +1,13 @@
 "use client";
 
 /**
- * MESSAGES PAGE - API INTEGRATION REFERENCE
- * -----------------------------------------------------------------------------
- * DATA SOURCE: useConversations().conversations
- * - Current: ConversationsContext (mockConversations + joinedConversations)
- * - Replace with: GET /api/conversations or Supabase messages
- * -----------------------------------------------------------------------------
+ * MESSAGES PAGE
+ * Shows only bubbles you’ve actually joined (from the map). No preset/fake chats.
  */
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { MessageCircle, MapPin } from "lucide-react";
 import BottomNav from "@/components/ui/BottomNav";
 import { useConversations } from "@/contexts/ConversationsContext";
 
@@ -25,7 +23,23 @@ export default function MessagesPage() {
         </div>
       </header>
       <div className="max-w-3xl mx-auto">
-        {conversations.map((convo) => (
+        {conversations.length === 0 ? (
+          <div className="px-4 py-8 text-center">
+            <MessageCircle className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+            <p className="text-sm font-medium text-foreground">No chats yet</p>
+            <p className="text-xs text-muted-foreground mt-1 max-w-[260px] mx-auto">
+              Join a bubble from the Map to start chatting. Create one from Home if the map is empty.
+            </p>
+            <Link
+              href="/map"
+              className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium"
+            >
+              <MapPin className="w-4 h-4" />
+              Open Map
+            </Link>
+          </div>
+        ) : (
+        conversations.map((convo) => (
           <button
             key={convo.id}
             onClick={() => router.push(`/chat/${convo.id}`)}
@@ -51,7 +65,8 @@ export default function MessagesPage() {
               </div>
             )}
           </button>
-        ))}
+        ))
+        )}
       </div>
       <BottomNav />
     </div>

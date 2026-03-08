@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { bubble_id } = body ?? {};
+    const body = await request.json().catch(() => ({}));
+    const bubble_id = (body?.bubble_id ?? body?.bubbleId ?? "").toString().trim();
     if (!bubble_id) {
       return NextResponse.json(
         { success: false, error: "bubble_id required" },

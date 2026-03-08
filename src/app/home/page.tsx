@@ -160,7 +160,7 @@ export default function HomePage() {
             {upcomingForYou.map((b) => (
               <Link
                 key={b.id}
-                href={`/chat/${b.id}`}
+                href={`/chat/bubble-${b.id}`}
                 className="min-w-[180px] flex-shrink-0 bg-card rounded-2xl border border-border overflow-hidden shadow-sm hover:border-primary/50 transition-colors block"
               >
                 <div className="h-24 bg-gradient-to-br from-primary/20 to-accent flex items-center justify-center text-3xl">

@@ -17,7 +17,6 @@
  */
 
 import { createContext, useContext, useState, useCallback } from "react";
-import { mockConversations } from "@/lib/mockData";
 import type { Conversation } from "@/lib/mockData";
 import type { Bubble, BubbleParticipant } from "@/lib/mockData";
 
@@ -58,7 +57,7 @@ export function ConversationsProvider({ children }: { children: React.ReactNode 
           id,
           name: bubble.title,
           avatar: bubble.emoji,
-          lastMessage: "You joined the group!",
+          lastMessage: "You joined — say hi!",
           time: "Just now",
           unread: 0,
           memberNames: getMemberNames(bubble),
@@ -77,7 +76,8 @@ export function ConversationsProvider({ children }: { children: React.ReactNode 
     setJoinedConversations((prev) => prev.filter((c) => c.id !== conversationId));
   }, []);
 
-  const conversations: BubbleConversation[] = [...joinedConversations, ...mockConversations];
+  // Only real bubbles you joined — no fake preset chats
+  const conversations: BubbleConversation[] = joinedConversations;
   const joinedBubbles = joinedConversations;
 
   return (
