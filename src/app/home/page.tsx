@@ -10,7 +10,7 @@
  * -----------------------------------------------------------------------------
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, MapPin, Plus, UserPlus, Check, X, Calendar, Square } from "lucide-react";
 import BottomNav from "@/components/ui/BottomNav";
@@ -24,11 +24,34 @@ import { ProfileLink } from "@/components/ProfileLink";
 import EndEventModal from "@/components/EndEventModal";
 import type { BubbleConversation } from "@/contexts/ConversationsContext";
 
+type UpcomingBubble = {
+  id: string;
+  emoji: string;
+  title: string;
+  startingIn: string;
+  joined: number;
+  maxPeople: number;
+  recommendationReason?: string;
+};
+
 export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState("Happening Now");
   const [createOpen, setCreateOpen] = useState(false);
+<<<<<<< HEAD
   const [endEventBubble, setEndEventBubble] = useState<BubbleConversation | null>(null);
   const [feedPosts, setFeedPosts] = useState<FeedPostType[]>(mockFeedPosts);
+=======
+  const [upcomingForYou, setUpcomingForYou] = useState<UpcomingBubble[]>(mockBubbles.slice(0, 6).map((b) => ({ ...b, recommendationReason: "Loading..." })));
+
+  useEffect(() => {
+    fetch("/api/recommendations")
+      .then((r) => r.json())
+      .then((data: UpcomingBubble[]) => {
+        if (Array.isArray(data) && data.length > 0) setUpcomingForYou(data);
+      })
+      .catch(() => {});
+  }, []);
+>>>>>>> 3bb449ba1467449f4f65761053831a1974c0da70
   const router = useRouter();
 
   const addPost = (post: Omit<FeedPostType, "id" | "timestamp"> & { imageUrl?: string }) => {
@@ -76,6 +99,28 @@ export default function HomePage() {
           University of Waterloo
           <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
+
+        {/* Upcoming for you - ML recommendations */}
+        <div className="mt-4 mb-4">
+          <h2 className="text-sm font-semibold text-foreground mb-3">Upcoming for you</h2>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+            {upcomingForYou.map((b) => (
+              <div
+                key={b.id}
+                className="min-w-[180px] flex-shrink-0 bg-card rounded-2xl border border-border overflow-hidden shadow-sm"
+              >
+                <div className="h-24 bg-gradient-to-br from-primary/20 to-accent flex items-center justify-center text-3xl">
+                  {b.emoji}
+                </div>
+                <div className="p-3">
+                  <p className="text-sm font-semibold text-foreground line-clamp-1">{b.title}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{b.recommendationReason || "For you"}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{b.startingIn} • {b.joined}/{b.maxPeople}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <div className="flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide">
           {filterChips.map((chip) => (

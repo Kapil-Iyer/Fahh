@@ -1,7 +1,9 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useMapOverlay } from "@/contexts/MapOverlayContext";
-import MapOverlay from "./MapOverlay";
+
+const MapOverlay = dynamic(() => import("./MapOverlay"), { ssr: false });
 
 export default function MapOverlayClient() {
   const ctx = useMapOverlay();
