@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { ensureUserInPublic } from "@/lib/ensureUser";
 
 /**
  * POST /api/auth/ensure-profile
@@ -17,21 +18,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { error } = await getSupabaseAdmin()
-      .from("users")
-      .upsert(
-        {
-          id: user.id,
-          email: user.email ?? "",
-          name: user.user_metadata?.name ?? null,
-          campus_verified: false,
-        },
-        { onConflict: "id" }
-      );
+    const admin = getSupabaseAdmin();
+    const { error } = await ensureUserInPublic(admin, user);
 
     if (error) {
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error },
         { status: 500 }
       );
     }

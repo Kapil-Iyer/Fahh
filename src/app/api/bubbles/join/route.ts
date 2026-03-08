@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { ensureUserInPublic } from "@/lib/ensureUser";
 
 /**
  * POST /api/bubbles/join
@@ -16,6 +17,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const admin = getSupabaseAdmin();
+    const { error: ensureError } = await ensureUserInPublic(admin, user);
+    if (ensureError) {
+      return NextResponse.json(
+        { success: false, error: `Could not ensure user: ${ensureError}` },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const bubble_id = (body?.bubble_id ?? body?.bubbleId ?? "").toString().trim();
     if (!bubble_id) {
@@ -24,8 +34,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const admin = getSupabaseAdmin();
 
     const { data: bubble, error: fetchError } = await admin
       .from("bubbles")

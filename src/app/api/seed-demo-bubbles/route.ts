@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { ensureUserInPublic } from "@/lib/ensureUser";
 
 /**
  * POST /api/seed-demo-bubbles
@@ -15,11 +16,13 @@ export async function POST(request: NextRequest) {
     }
     const admin = getSupabaseAdmin();
 
-    // Ensure user exists in public.users (creator_id FK). Required for anonymous sign-in.
-    await admin.from("users").upsert(
-      { id: user.id, email: user.email ?? "", name: user.user_metadata?.name ?? null, campus_verified: false },
-      { onConflict: "id" }
-    );
+    const { error: ensureError } = await ensureUserInPublic(admin, user);
+    if (ensureError) {
+      return NextResponse.json(
+        { success: false, error: `Could not ensure user: ${ensureError}` },
+        { status: 500 }
+      );
+    }
 
     const { data: existing } = await admin
       .from("bubble_members")

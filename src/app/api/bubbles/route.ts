@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { ensureUserInPublic } from "@/lib/ensureUser";
 
 /**
  * POST /api/bubbles
@@ -14,6 +15,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: "Unauthenticated" },
         { status: 401 }
+      );
+    }
+
+    const admin = getSupabaseAdmin();
+    const { error: ensureError } = await ensureUserInPublic(admin, user);
+    if (ensureError) {
+      return NextResponse.json(
+        { success: false, error: `Could not ensure user: ${ensureError}` },
+        { status: 500 }
       );
     }
 
@@ -46,8 +56,6 @@ export async function POST(request: NextRequest) {
     );
     const duration = Number(duration_minutes);
     const time_window = duration >= 60 ? `${Math.floor(duration / 60)} hr` : `${duration} min`;
-
-    const admin = getSupabaseAdmin();
 
     const { data: bubble, error: insertError } = await admin
       .from("bubbles")

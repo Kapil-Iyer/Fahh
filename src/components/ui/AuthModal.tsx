@@ -1,11 +1,9 @@
 "use client";
 
 /**
- * AUTH MODAL - OTP disabled for now (email rate limit).
- * -----------------------------------------------------------------------------
- * Login/Signup just redirect; no API calls. Re-enable OTP later by restoring
- * fetch("/api/auth/login"), fetch("/api/auth/verify"), setSession, and verify step.
- * -----------------------------------------------------------------------------
+ * AUTH MODAL - Supabase OTP (magic link / 6-digit code).
+ * Login/Signup call /api/auth/login and /api/auth/signup (signInWithOtp), then user
+ * enters code or clicks magic link. Verify calls /api/auth/verify, setSession, redirect.
  */
 
 import { useState } from "react";
@@ -15,11 +13,12 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { Mail, User } from "lucide-react";
 
-const OTP_DISABLED = true;
+const OTP_DISABLED = false;
 
 export default function AuthModal() {
   const [mode, setMode] = useState<"choice" | "signup" | "login" | "verify">("choice");
   const [pendingEmail, setPendingEmail] = useState<string>("");
+  const [pendingRedirect, setPendingRedirect] = useState<"onboarding" | "home">("onboarding");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +76,7 @@ export default function AuthModal() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Sign up failed");
       setPendingEmail(email);
+      setPendingRedirect("onboarding");
       setMode("verify");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign up failed");
@@ -129,6 +129,7 @@ export default function AuthModal() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Login failed");
       setPendingEmail(email);
+      setPendingRedirect("home");
       setMode("verify");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
