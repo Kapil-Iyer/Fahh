@@ -52,10 +52,10 @@ export async function POST(
       bubble: updatedBubble
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in bubble completion route:', error);
     return NextResponse.json(
-      { error: error.message || 'An unexpected error occurred' },
+      { error: error instanceof Error ? error.message : 'An unexpected error occurred' },
       { status: 500 }
     );
   }

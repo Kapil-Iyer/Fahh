@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     }
 
     // Determine the base effect
-    const baseTransform: any = { width: 500, height: 500, crop: 'fill' };
+    const baseTransform: Record<string, unknown> = { width: 500, height: 500, crop: 'fill' };
     if (filterStyle === 'grayscale') {
       baseTransform.effect = 'grayscale';
     } else if (filterStyle === 'sepia') {
@@ -77,10 +77,10 @@ export async function POST(request: Request) {
     const cloudinary_url = uploadResponse.secure_url;
 
     return NextResponse.json({ success: true, cloudinary_url });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Media upload error:', error);
     return NextResponse.json(
-      { error: error.message || 'Error occurred during file upload' },
+      { error: error instanceof Error ? error.message : 'Error occurred during file upload' },
       { status: 500 }
     );
   }
