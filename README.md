@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Wanderers
 
 **Find your people. Start something.**
@@ -292,3 +293,7 @@ See `ml-service/README.md` for endpoints and details.
 ## License
 
 Private / not specified. See repository or team for terms.
+=======
+
+
+>>>>>>> 7a31f3ebd762ec64227e511bbcebb821cb180451
