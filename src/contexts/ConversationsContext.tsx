@@ -19,14 +19,21 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import { mockConversations } from "@/lib/mockData";
 import type { Conversation } from "@/lib/mockData";
-import type { Bubble } from "@/lib/mockData";
+import type { Bubble, BubbleParticipant } from "@/lib/mockData";
 
-export type BubbleConversation = Conversation & { memberNames?: string[] };
+export type BubbleConversation = Conversation & {
+  memberNames?: string[];
+  duration?: string;
+  zone?: string;
+  participants?: BubbleParticipant[];
+  joined?: number; // member count — chat unlocks at 2
+};
 
 type ConversationsContextValue = {
   conversations: BubbleConversation[];
   joinedBubbles: BubbleConversation[];
   addBubbleConversation: (bubble: Bubble) => void;
+  removeBubbleFromJoined: (conversationId: string) => void;
 };
 
 const ConversationsContext = createContext<ConversationsContextValue | null>(null);
@@ -55,16 +62,26 @@ export function ConversationsProvider({ children }: { children: React.ReactNode 
           time: "Just now",
           unread: 0,
           memberNames: getMemberNames(bubble),
+          duration: bubble.duration,
+          participants: bubble.participants?.length
+            ? bubble.participants
+            : [{ id: "creator", name: bubble.creator, avatar: bubble.creatorAvatar }],
+          joined: bubble.joined + 1, // +1 for current user joining
+          zone: bubble.zone,
         },
       ];
     });
+  }, []);
+
+  const removeBubbleFromJoined = useCallback((conversationId: string) => {
+    setJoinedConversations((prev) => prev.filter((c) => c.id !== conversationId));
   }, []);
 
   const conversations: BubbleConversation[] = [...joinedConversations, ...mockConversations];
   const joinedBubbles = joinedConversations;
 
   return (
-    <ConversationsContext.Provider value={{ conversations, joinedBubbles, addBubbleConversation }}>
+    <ConversationsContext.Provider value={{ conversations, joinedBubbles, addBubbleConversation, removeBubbleFromJoined }}>
       {children}
     </ConversationsContext.Provider>
   );
