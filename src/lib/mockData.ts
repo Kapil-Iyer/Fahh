@@ -31,9 +31,11 @@ export interface Bubble {
   emoji: string;
   title: string;
   category: string;
+  zone?: string;
   joined: number;
   maxPeople: number;
   startingIn: string;
+  duration: string;
   distance: string;
   description: string;
   lat?: number;
@@ -67,9 +69,11 @@ export const mockBubbles: Bubble[] = [
     emoji: "🏀",
     title: "3v3 Basketball at PAC",
     category: "Sports",
+    zone: "PAC",
     joined: 4,
     maxPeople: 6,
     startingIn: "15 mins",
+    duration: "1 hr",
     distance: "0.2 km",
     description: "Pickup game at the PAC gym. Looking for 2 more players!",
     lat: 43.4722,
@@ -88,9 +92,11 @@ export const mockBubbles: Bubble[] = [
     emoji: "📚",
     title: "CS 341 Study Group - DC Library",
     category: "Study",
+    zone: "DC",
     joined: 3,
     maxPeople: 8,
     startingIn: "1 hr",
+    duration: "2 hrs",
     distance: "0.1 km",
     description: "Midterm prep in Davis Centre library. Room 1301.",
     lat: 43.4725,
@@ -108,9 +114,11 @@ export const mockBubbles: Bubble[] = [
     emoji: "🎮",
     title: "Smash Bros at PAC Lounge",
     category: "Gaming",
+    zone: "PAC",
     joined: 6,
     maxPeople: 8,
     startingIn: "45 mins",
+    duration: "2 hrs",
     distance: "0.2 km",
     description: "Casual Smash tournament in PAC common area. All skill levels welcome!",
     lat: 43.4719,
@@ -131,9 +139,11 @@ export const mockBubbles: Bubble[] = [
     emoji: "☕",
     title: "Coffee & Chat - SLC",
     category: "Casual",
+    zone: "SLC",
     joined: 2,
     maxPeople: 5,
     startingIn: "30 mins",
+    duration: "1 hr",
     distance: "0.3 km",
     description: "Grabbing coffee at the Student Life Centre. Anyone want to join?",
     lat: 43.4705,
@@ -150,9 +160,11 @@ export const mockBubbles: Bubble[] = [
     emoji: "🏃",
     title: "Pickup Volleyball - PAC",
     category: "Sports",
+    zone: "PAC",
     joined: 4,
     maxPeople: 12,
     startingIn: "20 mins",
+    duration: "1 hr 30 mins",
     distance: "0.2 km",
     description: "Beach volleyball at PAC outdoor courts. Bring water!",
     lat: 43.4724,
@@ -171,9 +183,11 @@ export const mockBubbles: Bubble[] = [
     emoji: "📖",
     title: "Math 136 Study Session - DC",
     category: "Study",
+    zone: "DC",
     joined: 2,
     maxPeople: 6,
     startingIn: "2 hrs",
+    duration: "3 hrs",
     distance: "0.1 km",
     description: "Linear algebra practice in Davis Centre. Second floor study area.",
     lat: 43.4726,
@@ -193,6 +207,7 @@ export const mockBubbles: Bubble[] = [
     joined: 8,
     maxPeople: 14,
     startingIn: "1 hr",
+    duration: "2 hrs",
     distance: "0.5 km",
     description: "Casual soccer game. All skill levels welcome!",
     lat: 43.4698,
@@ -218,6 +233,7 @@ export const mockBubbles: Bubble[] = [
     joined: 5,
     maxPeople: 20,
     startingIn: "3 hrs",
+    duration: "3 hrs",
     distance: "0.2 km",
     description: "Bring your instrument or just come listen. MC Comfy Lounge.",
     lat: 43.4715,
@@ -240,6 +256,7 @@ export const mockBubbles: Bubble[] = [
     joined: 2,
     maxPeople: 8,
     startingIn: "45 mins",
+    duration: "1 hr",
     distance: "0.2 km",
     description: "Swimming laps at PAC. Pace yourself!",
     lat: 43.4720,
@@ -259,6 +276,7 @@ export const mockBubbles: Bubble[] = [
     joined: 4,
     maxPeople: 6,
     startingIn: "30 mins",
+    duration: "2 hrs",
     distance: "0.3 km",
     description: "Grinding interview prep together. Bring your laptop!",
     lat: 43.4708,
@@ -280,6 +298,7 @@ export const mockBubbles: Bubble[] = [
     joined: 3,
     maxPeople: 8,
     startingIn: "2 hrs",
+    duration: "3 hrs",
     distance: "1.2 km",
     description: "Short hike along Laurel Creek. Meet at park entrance.",
     lat: 43.4680,
@@ -300,6 +319,7 @@ export const mockBubbles: Bubble[] = [
     joined: 6,
     maxPeople: 10,
     startingIn: "1 hr",
+    duration: "2 hrs",
     distance: "0.1 km",
     description: "Catan, Codenames, and more. Engineering building lounge.",
     lat: 43.4730,
@@ -353,9 +373,13 @@ export interface FeedPost {
   username: string;
   userAvatar: string;
   imagePlaceholder?: string;
+  imageUrl?: string;
+  activity?: string;
+  zone?: string;
+  participants?: { name: string; avatar: string }[];
   caption: string;
-  likes: number;
-  comments: FeedComment[];
+  likes?: number;
+  comments?: FeedComment[];
   timestamp: string;
 }
 
@@ -364,44 +388,40 @@ export const mockFeedPosts: FeedPost[] = [
     id: "f1",
     username: "alex.chen",
     userAvatar: "AC",
-    caption: "Pickup game at the PAC gym. Looking for 2 more players! #basketball #uw",
-    likes: 143,
-    comments: [
-      { id: "c1", username: "maya.k", text: "Stunning! 🥰" },
-      { id: "c2", username: "jordan_w", text: "Where is this??" },
-    ],
+    activity: "Basketball",
+    zone: "PAC",
+    caption: "Pickup game at the PAC gym!",
+    participants: [{ name: "Marcus J.", avatar: "MJ" }, { name: "Jordan T.", avatar: "JT" }],
     timestamp: "2H AGO",
   },
   {
     id: "f2",
     username: "sarah.k",
     userAvatar: "SK",
-    caption: "Study sesh at DC Library. Midterm prep mode ✨ #study #cs341",
-    likes: 87,
-    comments: [
-      { id: "c3", username: "priya.r", text: "Good luck!" },
-    ],
+    activity: "Study",
+    zone: "DC",
+    caption: "Study sesh at DC Library. Midterm prep mode ✨",
+    participants: [{ name: "Priya R.", avatar: "PR" }],
     timestamp: "4H AGO",
   },
   {
     id: "f3",
     username: "marcus.j",
     userAvatar: "MJ",
-    caption: "Smash Bros tournament was a blast. GGs everyone 🎮 #gaming",
-    likes: 212,
-    comments: [
-      { id: "c4", username: "danny.l", text: "Rematch when??" },
-      { id: "c5", username: "alex.chen", text: "Great hosting!" },
-    ],
+    activity: "Gaming",
+    zone: "PAC",
+    caption: "Smash Bros tournament was a blast. GGs everyone 🎮",
+    participants: [{ name: "Danny L.", avatar: "DL" }, { name: "Alex W.", avatar: "AW" }],
     timestamp: "6H AGO",
   },
   {
     id: "f4",
     username: "priya.r",
     userAvatar: "PR",
-    caption: "Coffee at SLC hit different today ☕ #vibes",
-    likes: 56,
-    comments: [],
+    activity: "Coffee",
+    zone: "SLC",
+    caption: "Coffee at SLC hit different today ☕",
+    participants: [],
     timestamp: "1D AGO",
   },
 ];

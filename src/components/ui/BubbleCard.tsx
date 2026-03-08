@@ -10,7 +10,6 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Clock, MapPin, Users } from "lucide-react";
 import type { Bubble } from "@/lib/mockData";
 import { useMapOverlay } from "@/contexts/MapOverlayContext";
 import { ProfileLink } from "@/components/ProfileLink";
@@ -18,26 +17,17 @@ import { ProfileLink } from "@/components/ProfileLink";
 export default function BubbleCard({ bubble }: { bubble: Bubble }) {
   const mapOverlay = useMapOverlay();
 
+  const zone = bubble.zone ?? bubble.distance;
+
   return (
     <div className="bg-card rounded-2xl p-4 shadow-card hover:shadow-card-hover transition-shadow border border-border">
       <div className="flex items-start gap-3">
         <div className="text-3xl">{bubble.emoji}</div>
         <div className="flex-1 min-w-0">
           <h3 className="font-bold text-foreground text-base">{bubble.title}</h3>
-          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Users className="w-3 h-3" />
-              {bubble.joined}/{bubble.maxPeople}
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              {bubble.startingIn}
-            </span>
-            <span className="flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
-              {bubble.distance}
-            </span>
-          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {zone} | {bubble.joined}/{bubble.maxPeople} people | Starts in {bubble.startingIn}
+          </p>
           <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{bubble.description}</p>
         </div>
       </div>

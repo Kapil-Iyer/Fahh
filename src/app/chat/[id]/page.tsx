@@ -27,6 +27,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const convo = conversations.find((c) => c.id === id);
   const isBubbleChat = id.startsWith("bubble-");
   const memberNames = isBubbleChat && convo && "memberNames" in convo ? (convo as { memberNames?: string[] }).memberNames : undefined;
+  const joined = isBubbleChat && convo && "joined" in convo ? (convo as { joined?: number }).joined : undefined;
+  const chatUnlocked = !isBubbleChat || (joined !== undefined && joined >= 2);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -47,10 +49,16 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       </header>
 
       <div className="flex-1 max-w-3xl mx-auto w-full px-4 py-4 overflow-y-auto flex flex-col">
-        {isBubbleChat && memberNames ? (
+        {isBubbleChat && !chatUnlocked ? (
           <div className="flex justify-center pt-4">
             <p className="text-xs text-muted-foreground text-center max-w-[280px]">
-              Created group chat with{" "}
+              Chat opens when one more person joins the bubble.
+            </p>
+          </div>
+        ) : isBubbleChat && memberNames ? (
+          <div className="flex justify-center pt-4">
+            <p className="text-xs text-muted-foreground text-center max-w-[280px]">
+              Group chat with{" "}
               {memberNames.map((name, i) => (
                 <span key={name}>
                   {i > 0 && ", "}
@@ -65,7 +73,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               ))}
             </p>
           </div>
-        ) : (
+        ) : null}
+        {chatUnlocked && (
           <div className="space-y-3">
             {mockMessages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}>
@@ -85,8 +94,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             ))}
           </div>
         )}
+        {!chatUnlocked && <div className="flex-1" />}
       </div>
 
+      {chatUnlocked && (
       <div className="glass-strong border-t border-border">
         <div className="max-w-3xl mx-auto flex items-center gap-2 px-4 py-3">
           <Input
@@ -100,6 +111,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           </button>
         </div>
       </div>
+      )}
     </div>
   );
 }
