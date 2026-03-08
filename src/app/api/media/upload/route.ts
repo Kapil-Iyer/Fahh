@@ -61,10 +61,12 @@ export async function POST(request: NextRequest) {
       baseTransform.effect = 'sepia';
     }
 
-    // Upload to Cloudinary with on-the-fly transformations for 'Photo Booth Polaroid' effect
-    const uploadResponse = await cloudinary.uploader.upload(image, {
-      folder: 'meetups/polaroids',
-      transformation: [
+    // Upload to Cloudinary (accepts data URL: data:image/...;base64,...)
+    let uploadResponse: { secure_url: string };
+    try {
+      uploadResponse = await cloudinary.uploader.upload(image, {
+        folder: 'meetups/polaroids',
+        transformation: [
         // 1. Base transform (crop + optional filter)
         baseTransform,
         
@@ -104,7 +106,15 @@ export async function POST(request: NextRequest) {
           y: 695
         }
       ]
-    });
+      });
+    } catch (uploadErr: unknown) {
+      const msg = uploadErr instanceof Error ? uploadErr.message : 'Cloudinary upload failed';
+      console.error('Cloudinary upload error:', uploadErr);
+      return NextResponse.json(
+        { success: false, error: msg },
+        { status: 500 }
+      );
+    }
 
     const cloudinary_url = uploadResponse.secure_url;
 

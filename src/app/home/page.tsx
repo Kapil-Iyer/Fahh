@@ -17,7 +17,7 @@ import { ChevronDown, MapPin, Plus, UserPlus, Check, X, Calendar, Square } from 
 import BottomNav from "@/components/ui/BottomNav";
 import BubbleCard from "@/components/ui/BubbleCard";
 import CreateBubbleModal from "@/components/ui/CreateBubbleModal";
-import { mockBubbles, filterChips, type FeedPost as FeedPostType } from "@/lib/mockData";
+import { mockBubbles, filterChips, mockFeedPosts, type FeedPost as FeedPostType } from "@/lib/mockData";
 import FeedPost from "@/components/FeedPost";
 import { useConnections } from "@/contexts/ConnectionsContext";
 import { useConversations } from "@/contexts/ConversationsContext";
@@ -50,14 +50,14 @@ export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState("Happening Now");
   const [createOpen, setCreateOpen] = useState(false);
   const [endEventBubble, setEndEventBubble] = useState<BubbleConversation | null>(null);
-  const [feedPosts, setFeedPosts] = useState<FeedPostType[]>([]);
+  const [feedPosts, setFeedPosts] = useState<FeedPostType[]>(mockFeedPosts);
   const [upcomingForYou, setUpcomingForYou] = useState<UpcomingBubble[]>(mockBubbles.slice(0, 6).map((b) => ({ ...b, recommendationReason: "Loading..." })));
 
   useEffect(() => {
     fetch("/api/moments")
       .then((res) => res.json())
       .then((data: { success?: boolean; data?: Array<{ id: string; cloudinary_url: string; created_at: string }> }) => {
-        if (data?.success && Array.isArray(data.data)) {
+        if (data?.success && Array.isArray(data.data) && data.data.length > 0) {
           const mapped: FeedPostType[] = data.data.map((m) => ({
             id: m.id,
             username: "Wanderer",
@@ -73,8 +73,9 @@ export default function HomePage() {
           }));
           setFeedPosts(mapped);
         }
+        // else: keep initial placeholder (mockFeedPosts)
       })
-      .catch(() => setFeedPosts([]));
+      .catch(() => setFeedPosts(mockFeedPosts));
   }, []);
 
   useEffect(() => {
