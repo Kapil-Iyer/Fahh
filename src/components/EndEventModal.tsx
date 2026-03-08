@@ -33,7 +33,7 @@ export default function EndEventModal({ bubble, onClose, onAddPost }: EndEventMo
   const [caption, setCaption] = useState("");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [filter, setFilter] = useState<"polaroid" | "vintage" | "scipia" | null>(null);
+  const [filter, setFilter] = useState<"polaroid" | "grayscale" | "sepia" | null>(null);
   const [posting, setPosting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,10 +72,6 @@ export default function EndEventModal({ bubble, onClose, onAddPost }: EndEventMo
     const bubbleId = bubble.id.replace(/^bubble-/, "");
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token;
-    if (!token) {
-      toast.error("Please sign in to post a moment.");
-      return;
-    }
 
     setPosting(true);
     try {
@@ -90,15 +86,14 @@ export default function EndEventModal({ bubble, onClose, onAddPost }: EndEventMo
       });
 
       const participants = bubble.participants ?? [];
-      const filterStyle =
-        filter === "vintage" ? "sepia" : filter === "scipia" ? "grayscale" : "polaroid";
+      const filterStyle = filter ?? "polaroid";
+
+      const uploadHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) uploadHeaders.Authorization = `Bearer ${token}`;
 
       const uploadRes = await fetch("/api/media/upload", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: uploadHeaders,
         body: JSON.stringify({
           bubble_id: bubbleId,
           image: base64Image,
@@ -118,13 +113,15 @@ export default function EndEventModal({ bubble, onClose, onAddPost }: EndEventMo
 
       const cloudinaryUrl = uploadJson.data?.cloudinary_url ?? uploadJson.cloudinary_url;
 
-      const confirmRes = await fetch(`/api/bubbles/${bubbleId}/confirm`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!confirmRes.ok) {
-        toast.error("Event could not be ended.");
-        return;
+      if (token) {
+        const confirmRes = await fetch(`/api/bubbles/${bubbleId}/confirm`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!confirmRes.ok) {
+          toast.error("Event could not be ended.");
+          return;
+        }
       }
 
       onAddPost({
@@ -177,7 +174,19 @@ export default function EndEventModal({ bubble, onClose, onAddPost }: EndEventMo
                 }`}
               >
                 {photoUrl ? (
-                  <img src={photoUrl} alt="Your moment" className="w-full h-full object-cover" />
+                  <img
+                    src={photoUrl}
+                    alt="Your moment"
+                    className="w-full h-full object-cover transition-[filter] duration-200"
+                    style={{
+                      filter:
+                        filter === "grayscale"
+                          ? "grayscale(100%)"
+                          : filter === "sepia"
+                            ? "sepia(100%)"
+                            : "none",
+                    }}
+                  />
                 ) : (
                   <>
                     <Camera className="w-12 h-12 text-muted-foreground" />
@@ -206,21 +215,21 @@ export default function EndEventModal({ bubble, onClose, onAddPost }: EndEventMo
               </button>
               <button
                 type="button"
-                onClick={() => setFilter(filter === "vintage" ? null : "vintage")}
+                onClick={() => setFilter(filter === "grayscale" ? null : "grayscale")}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  filter === "vintage" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-accent"
+                  filter === "grayscale" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-accent"
                 }`}
               >
-                Vintage
+                Grayscale
               </button>
               <button
                 type="button"
-                onClick={() => setFilter(filter === "scipia" ? null : "scipia")}
+                onClick={() => setFilter(filter === "sepia" ? null : "sepia")}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  filter === "scipia" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-accent"
+                  filter === "sepia" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-accent"
                 }`}
               >
-                Scipia
+                Sepia
               </button>
             </div>
             <div className="space-y-1.5 mt-1">

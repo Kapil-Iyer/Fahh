@@ -13,6 +13,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ChevronDown, MapPin, Plus, UserPlus, Check, X, Calendar, Square } from "lucide-react";
 import BottomNav from "@/components/ui/BottomNav";
 import BubbleCard from "@/components/ui/BubbleCard";
@@ -79,10 +80,28 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/recommendations")
-      .then((r) => r.json())
-      .then((data: UpcomingBubble[]) => {
-        if (Array.isArray(data) && data.length > 0) setUpcomingForYou(data);
+    import("@/lib/supabase")
+      .then((m) => m.supabase.auth.getSession())
+      .then(({ data }) => {
+        const userId = data?.session?.user?.id;
+        const url = userId ? `/api/recommendations?user_id=${encodeURIComponent(userId)}` : "/api/recommendations";
+        return fetch(url).then((r) => r.json());
+      })
+      .then((data: { recommended_bubbles?: Array<{ id: string; title?: string; emoji?: string; startingIn?: string; joined?: number; maxPeople?: number; recommendationReason?: string }> }) => {
+        const list = data?.recommended_bubbles;
+        if (Array.isArray(list) && list.length > 0) {
+          setUpcomingForYou(
+            list.map((b) => ({
+              id: b.id,
+              emoji: b.emoji ?? "🫧",
+              title: b.title ?? "Activity",
+              startingIn: b.startingIn ?? "Soon",
+              joined: b.joined ?? 0,
+              maxPeople: b.maxPeople ?? 8,
+              recommendationReason: b.recommendationReason ?? "For you",
+            }))
+          );
+        }
       })
       .catch(() => {});
   }, []);
@@ -139,9 +158,10 @@ export default function HomePage() {
           <h2 className="text-sm font-semibold text-foreground mb-3">Upcoming for you</h2>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
             {upcomingForYou.map((b) => (
-              <div
+              <Link
                 key={b.id}
-                className="min-w-[180px] flex-shrink-0 bg-card rounded-2xl border border-border overflow-hidden shadow-sm"
+                href={`/chat/${b.id}`}
+                className="min-w-[180px] flex-shrink-0 bg-card rounded-2xl border border-border overflow-hidden shadow-sm hover:border-primary/50 transition-colors block"
               >
                 <div className="h-24 bg-gradient-to-br from-primary/20 to-accent flex items-center justify-center text-3xl">
                   {b.emoji}
@@ -151,7 +171,7 @@ export default function HomePage() {
                   <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{b.recommendationReason || "For you"}</p>
                   <p className="text-xs text-muted-foreground mt-1">{b.startingIn} • {b.joined}/{b.maxPeople}</p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * AUTH MODAL - Login / Signup
+ * AUTH MODAL - OTP disabled for now (email rate limit).
  * -----------------------------------------------------------------------------
- * Calls: POST /api/auth/signup, POST /api/auth/login (both mock - always succeed)
- * Replace with Supabase Auth (signUp, signInWithOtp) per project rules.
+ * Login/Signup just redirect; no API calls. Re-enable OTP later by restoring
+ * fetch("/api/auth/login"), fetch("/api/auth/verify"), setSession, and verify step.
  * -----------------------------------------------------------------------------
  */
 
@@ -13,38 +13,70 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { Mail, User } from "lucide-react";
+
+const OTP_DISABLED = true;
 
 export default function AuthModal() {
   const [mode, setMode] = useState<"choice" | "signup" | "login" | "verify">("choice");
-  const [showPassword, setShowPassword] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string>("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  const signInAnonymouslyAndContinue = async (redirectTo: "onboarding" | "home") => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data: sessionData } = await import("@/lib/supabase").then((m) => m.supabase.auth.getSession());
+      if (sessionData?.session?.access_token) {
+        await fetch("/api/auth/ensure-profile", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
+        });
+        router.push(redirectTo === "home" ? "/home" : "/onboarding");
+        return;
+      }
+      const { data, error: signInError } = await import("@/lib/supabase").then((m) =>
+        m.supabase.auth.signInAnonymously()
+      );
+      if (signInError) throw new Error(signInError.message);
+      const token = data?.session?.access_token;
+      if (token) {
+        await fetch("/api/auth/ensure-profile", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+      router.push(redirectTo === "home" ? "/home" : "/onboarding");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign in failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    const form = e.currentTarget;
-    const name = (form.elements.namedItem("name") as HTMLInputElement)?.value;
-    const email = (form.elements.namedItem("email") as HTMLInputElement)?.value;
-    const password = (form.elements.namedItem("password") as HTMLInputElement)?.value;
-    const confirmPassword = (form.elements.namedItem("confirm") as HTMLInputElement)?.value;
-    if (!name || !email || !password) return;
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
+    if (OTP_DISABLED) {
+      await signInAnonymouslyAndContinue("onboarding");
       return;
     }
+    const form = e.currentTarget;
+    const email = (form.elements.namedItem("email") as HTMLInputElement)?.value?.trim();
+    if (!email) return;
     setLoading(true);
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Sign up failed");
+      setPendingEmail(email);
       setMode("verify");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign up failed");
@@ -53,28 +85,51 @@ export default function AuthModal() {
     }
   };
 
-  const handleVerify = (e: React.FormEvent) => {
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/onboarding");
+    if (OTP_DISABLED) return;
+    if (!pendingEmail || otp.length < 6) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: pendingEmail, token: otp }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Verification failed");
+      const { supabase } = await import("@/lib/supabase");
+      if (data.session) await supabase.auth.setSession(data.session);
+      router.push("/onboarding");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Verification failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    if (OTP_DISABLED) {
+      await signInAnonymouslyAndContinue("home");
+      return;
+    }
     const form = e.currentTarget;
-    const email = (form.elements.namedItem("loginEmail") as HTMLInputElement)?.value;
-    const password = (form.elements.namedItem("loginPassword") as HTMLInputElement)?.value;
-    if (!email || !password) return;
+    const email = (form.elements.namedItem("loginEmail") as HTMLInputElement)?.value?.trim();
+    if (!email) return;
     setLoading(true);
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Login failed");
-      router.push("/home");
+      setPendingEmail(email);
+      setMode("verify");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -137,7 +192,7 @@ export default function AuthModal() {
       {mode === "signup" && (
         <form onSubmit={handleSignUp} className="space-y-4 animate-fade-in">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-white/70 text-sm font-medium">First Name</Label>
+            <Label htmlFor="name" className="text-white/70 text-sm font-medium">First Name (optional)</Label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
               <Input
@@ -145,7 +200,6 @@ export default function AuthModal() {
                 name="name"
                 placeholder="Your first name"
                 className="pl-10 h-11 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-cyan-500/50 focus:ring-cyan-500/20"
-                required
               />
             </div>
           </div>
@@ -163,43 +217,14 @@ export default function AuthModal() {
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-white/70 text-sm font-medium">Create Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <Input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                className="pl-10 pr-10 h-11 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-cyan-500/50 focus:ring-cyan-500/20"
-                required
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70">
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirm" className="text-white/70 text-sm font-medium">Confirm Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <Input
-                id="confirm"
-                name="confirm"
-                type="password"
-                placeholder="••••••••"
-                className="pl-10 h-11 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-cyan-500/50 focus:ring-cyan-500/20"
-                required
-              />
-            </div>
-          </div>
+          {!OTP_DISABLED && <p className="text-xs text-white/50">We&apos;ll send a one-time code to your email. No password needed.</p>}
+          {OTP_DISABLED && <p className="text-xs text-amber-400/90">Sign-in skipped for now. You can use the app without verifying.</p>}
           <Button
             type="submit"
             className="w-full h-12 rounded-xl text-base font-semibold bg-cyan-500 hover:bg-cyan-400 text-cyan-950 shadow-lg shadow-cyan-500/25 disabled:opacity-50"
             disabled={loading}
           >
-            {loading ? "Creating…" : "Create Account"}
+            {OTP_DISABLED ? "Continue to Onboarding" : loading ? "Sending code…" : "Create Account"}
           </Button>
           <button type="button" onClick={() => setMode("choice")} className="w-full text-sm text-white/50 hover:text-white transition-colors">← Back</button>
         </form>
@@ -211,7 +236,7 @@ export default function AuthModal() {
             <Mail className="w-8 h-8 text-cyan-400" />
           </div>
           <h2 className="text-xl font-bold text-white">Check your email</h2>
-          <p className="text-sm text-white/50">We sent a 6-digit code to your email</p>
+          <p className="text-sm text-white/50">We sent a 6-digit code to {pendingEmail || "your email"}</p>
           <Input
             value={otp}
             onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -219,13 +244,13 @@ export default function AuthModal() {
             maxLength={6}
             className="text-center text-2xl tracking-[0.5em] h-14 rounded-xl font-mono bg-white/5 border-white/10 text-white"
           />
-          <Button type="submit" className="w-full h-12 rounded-xl text-base font-semibold bg-cyan-500 hover:bg-cyan-400 text-cyan-950" disabled={otp.length < 6}>
-            Verify
+          <Button type="submit" className="w-full h-12 rounded-xl text-base font-semibold bg-cyan-500 hover:bg-cyan-400 text-cyan-950 disabled:opacity-50" disabled={loading || otp.length < 6}>
+            {loading ? "Verifying…" : "Verify"}
           </Button>
           <button type="button" onClick={() => router.push("/onboarding")} className="block w-full text-sm text-white/50 hover:text-white transition-colors">
             Skip for now →
           </button>
-          <button type="button" onClick={() => setMode("signup")} className="block w-full text-sm text-white/50 hover:text-white transition-colors">← Back</button>
+          <button type="button" onClick={() => { setMode("choice"); setOtp(""); setPendingEmail(""); }} className="block w-full text-sm text-white/50 hover:text-white transition-colors">← Back</button>
         </form>
       )}
 
@@ -245,29 +270,14 @@ export default function AuthModal() {
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="loginPassword" className="text-white/70 text-sm font-medium">Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <Input
-                id="loginPassword"
-                name="loginPassword"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                className="pl-10 pr-10 h-11 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-cyan-500/50 focus:ring-cyan-500/20"
-                required
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70">
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
+          {!OTP_DISABLED && <p className="text-xs text-white/50">We&apos;ll send a one-time code to your email. No password needed.</p>}
+          {OTP_DISABLED && <p className="text-xs text-amber-400/90">Sign-in skipped for now. You can use the app without verifying.</p>}
           <Button
             type="submit"
             className="w-full h-12 rounded-xl text-base font-semibold bg-cyan-500 hover:bg-cyan-400 text-cyan-950 shadow-lg shadow-cyan-500/25 disabled:opacity-50"
             disabled={loading}
           >
-            {loading ? "Logging in…" : "Log In"}
+            {OTP_DISABLED ? "Continue to Home" : loading ? "Sending code…" : "Log In"}
           </Button>
           <button type="button" onClick={() => setMode("choice")} className="w-full text-sm text-white/50 hover:text-white transition-colors">← Back</button>
         </form>

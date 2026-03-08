@@ -10,12 +10,17 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const ALLOW_UPLOAD_WITHOUT_AUTH = process.env.ALLOW_UPLOAD_WITHOUT_AUTH === 'true';
+
 export async function POST(request: NextRequest) {
   try {
-    const user = await getAuthUser(request);
+    let user: { id: string } | null = await getAuthUser(request);
+    if (!user && ALLOW_UPLOAD_WITHOUT_AUTH) {
+      user = { id: '00000000-0000-0000-0000-000000000000' } as { id: string };
+    }
     if (!user) {
       return NextResponse.json(
-        { success: false, error: 'Unauthenticated' },
+        { success: false, error: 'Unauthenticated. Sign in to upload, or set ALLOW_UPLOAD_WITHOUT_AUTH=true in .env.local to test.' },
         { status: 401 }
       );
     }
@@ -23,26 +28,28 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { image, activity, location, date, memberCount, filterStyle, bubble_id } = body ?? {};
 
-    if (!bubble_id) {
+    if (!bubble_id && !ALLOW_UPLOAD_WITHOUT_AUTH) {
       return NextResponse.json(
         { success: false, error: 'bubble_id required' },
         { status: 400 }
       );
     }
 
-    const admin = getSupabaseAdmin();
-    const { data: membership } = await admin
-      .from('bubble_members')
-      .select('user_id')
-      .eq('bubble_id', bubble_id)
-      .eq('user_id', user.id)
-      .maybeSingle();
+    if (!ALLOW_UPLOAD_WITHOUT_AUTH) {
+      const admin = getSupabaseAdmin();
+      const { data: membership } = await admin
+        .from('bubble_members')
+        .select('user_id')
+        .eq('bubble_id', bubble_id)
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-    if (!membership) {
-      return NextResponse.json(
-        { success: false, error: 'Not a member of this bubble' },
-        { status: 403 }
-      );
+      if (!membership) {
+        return NextResponse.json(
+          { success: false, error: 'Not a member of this bubble' },
+          { status: 403 }
+        );
+      }
     }
 
     // Validate request body
@@ -53,7 +60,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Determine the base effect
+    // Cloudinary effect: apply grayscale or sepia in the first transformation step
     const baseTransform: Record<string, unknown> = { width: 500, height: 500, crop: 'fill' };
     if (filterStyle === 'grayscale') {
       baseTransform.effect = 'grayscale';
@@ -118,18 +125,21 @@ export async function POST(request: NextRequest) {
 
     const cloudinary_url = uploadResponse.secure_url;
 
-    const { error: insertError } = await admin.from('meetup_photos').insert({
-      bubble_id,
-      user_id: user.id,
-      cloudinary_url,
-    });
+    if (!ALLOW_UPLOAD_WITHOUT_AUTH && bubble_id) {
+      const admin = getSupabaseAdmin();
+      const { error: insertError } = await admin.from('meetup_photos').insert({
+        bubble_id,
+        user_id: user.id,
+        cloudinary_url,
+      });
 
-    if (insertError) {
-      console.error('meetup_photos insert error:', insertError);
-      return NextResponse.json(
-        { success: false, error: 'Failed to save moment' },
-        { status: 500 }
-      );
+      if (insertError) {
+        console.error('meetup_photos insert error:', insertError);
+        return NextResponse.json(
+          { success: false, error: 'Failed to save moment' },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json({

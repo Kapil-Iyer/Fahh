@@ -6,6 +6,7 @@
 | POST | `/api/auth/login` | Login (email OTP) → used by AuthModal |
 | POST | `/api/auth/signup` | Sign up (email OTP) → used by AuthModal |
 | POST | `/api/auth/verify` | Verify OTP, upsert user profile, return session |
+| POST | `/api/auth/ensure-profile` | Ensure current user (Bearer) has a row in public.users; use after signInAnonymously when OTP is disabled |
 | POST | `/api/bubbles` | Create bubble (auth required); body: activity, zone, start_time, duration_minutes, max_members?, description? |
 | POST | `/api/bubbles/join` | Join bubble (auth required); body: bubble_id |
 | GET | `/api/bubbles/list` | List open/active, non-expired bubbles with member count |
@@ -15,6 +16,8 @@
 | POST | `/api/bubbles/[id]/confirm` | End event: set bubble status to expired (auth + member) |
 | POST | `/api/media/upload` | Upload moment image → Cloudinary, insert meetup_photos (auth + member); body: `bubble_id`, image, activity, location, date, memberCount, filterStyle |
 | GET | `/api/moments` | List Wander Moments (meetup_photos) for feed |
+| POST | `/api/ai/parse-intent` | Gemini: parse natural language → activity, zone, start_time, duration_minutes, etc. Body: `{ text }`. Env: GEMINI_API_KEY |
+| GET | `/api/recommendations` | Recommended bubbles. Optional `?user_id=` for Flask. If RECOMMENDATIONS_API_URL set, calls Flask; else fallback from DB (open/active bubbles). Returns `{ recommended_bubbles: [...] }`. |
 
 Auth: Supabase Auth (email OTP). Protected routes expect `Authorization: Bearer <access_token>`.
 
