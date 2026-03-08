@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
 // Simple POST route to update a bubble's status to 'completed'
 export async function POST(
@@ -16,7 +16,7 @@ export async function POST(
       );
     }
 
-    const supabase = supabaseAdmin;
+    const supabase = getSupabaseAdmin();
 
     // Keep auth simple for now: Require a logged-in user session
     const {
