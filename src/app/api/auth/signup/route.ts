@@ -5,7 +5,7 @@ const WATERLOO_EMAIL_SUFFIX = "@uwaterloo.ca";
 
 /**
  * POST /api/auth/signup
- * Accept { email }. Reject non @uwaterloo.ca. Send OTP via Supabase.
+ * Accept { email }. Only @uwaterloo.ca. Send OTP via Supabase.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -17,16 +17,35 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    if (!email.endsWith(WATERLOO_EMAIL_SUFFIX)) {
+    const emailTrimmed = email.trim().toLowerCase();
+    if (!emailTrimmed.endsWith(WATERLOO_EMAIL_SUFFIX)) {
       return NextResponse.json(
         { success: false, error: "Only @uwaterloo.ca emails are allowed" },
         { status: 400 }
       );
     }
 
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    const host =
+      request.headers.get("x-forwarded-host") ||
+      request.headers.get("host") ||
+      "";
+    const proto = request.headers.get("x-forwarded-proto") || "http";
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (host ? `${proto}://${host}` : "http://localhost:3000");
+    const redirectTo = `${siteUrl.replace(/\/$/, "")}/auth/callback`;
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: emailTrimmed,
+      options: { emailRedirectTo: redirectTo },
+    });
 
     if (error) {
+      console.error("[auth/signup] Supabase signInWithOtp error:", {
+        message: error.message,
+        name: error.name,
+        status: error.status,
+      });
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 400 }

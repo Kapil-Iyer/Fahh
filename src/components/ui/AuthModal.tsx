@@ -1,9 +1,8 @@
 "use client";
 
 /**
- * AUTH MODAL - Supabase OTP (magic link / 6-digit code).
- * Login/Signup call /api/auth/login and /api/auth/signup (signInWithOtp), then user
- * enters code or clicks magic link. Verify calls /api/auth/verify, setSession, redirect.
+ * AUTH MODAL - Auth disabled for now; skip to app (anonymous + ensure-profile).
+ * When re-enabled: only @uwaterloo.ca (enforced in API + Supabase).
  */
 
 import { useState } from "react";
@@ -13,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { Mail, User } from "lucide-react";
 
-const OTP_DISABLED = false;
+const OTP_DISABLED = true;
 
 export default function AuthModal() {
   const [mode, setMode] = useState<"choice" | "signup" | "login" | "verify">("choice");
