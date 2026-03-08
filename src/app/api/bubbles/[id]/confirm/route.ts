@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 // Simple POST route to update a bubble's status to 'completed'
 export async function POST(
@@ -17,7 +16,7 @@ export async function POST(
       );
     }
 
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = supabaseAdmin;
 
     // Keep auth simple for now: Require a logged-in user session
     const {
