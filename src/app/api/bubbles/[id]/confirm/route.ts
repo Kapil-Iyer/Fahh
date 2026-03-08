@@ -5,10 +5,10 @@ import { cookies } from 'next/headers';
 // Simple POST route to update a bubble's status to 'completed'
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const bubbleId = params.id;
+    const { id: bubbleId } = await params;
 
     if (!bubbleId) {
       return NextResponse.json(
