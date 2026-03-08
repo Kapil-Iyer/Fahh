@@ -1,6 +1,4 @@
 /**
- * Recommender model - exports for use in the app
+ * Model types. ML logic lives in Python (model/kmeans/, ml-service/).
  */
-export { getRecommendedBubbles } from "./recommender";
-export { currentUser, syntheticBubbles } from "./syntheticData";
 export type { User, Bubble, ScoredBubble } from "./types";
