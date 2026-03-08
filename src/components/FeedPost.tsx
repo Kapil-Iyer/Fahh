@@ -1,50 +1,56 @@
 "use client";
 
 /**
- * FEED POST - "Recent Moments" / meetup photo card
+ * FEED POST - "Wander Moments" / meetup proof
  * -----------------------------------------------------------------------------
- * Props: post (FeedPostType from mockFeedPosts)
- * API: GET /api/feed or meetup_photos. Like → POST /api/feed/:id/like
- *      Comment → POST /api/feed/:id/comments
+ * Moments = proof of meetup.
+ * Shows: photo, activity, zone, timestamp, caption, participants, like/comment/share.
  * -----------------------------------------------------------------------------
  */
 
 import { useState } from "react";
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from "lucide-react";
 import type { FeedPost as FeedPostType, FeedComment } from "@/lib/mockData";
 import { ProfileLink } from "@/components/ProfileLink";
+import { Heart, MessageCircle, Share2, Send } from "lucide-react";
 
 type FeedPostProps = {
   post: FeedPostType;
 };
 
 export default function FeedPost({ post }: FeedPostProps) {
+  const activity = post.activity ?? post.caption?.split("#")[0]?.trim() ?? "Activity";
+  const zone = post.zone ?? "—";
+  const participants = post.participants ?? [];
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(post.likes);
-  const [comments, setComments] = useState<FeedComment[]>(post.comments);
-  const [commentInput, setCommentInput] = useState("");
-  const [showAllComments, setShowAllComments] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState<FeedComment[]>(post.comments ?? []);
+  const [commentDraft, setCommentDraft] = useState("");
+  const likeCount = (post.likes ?? 0) + (liked ? 1 : 0);
 
-  const handleLike = () => {
-    setLiked((prev) => !prev);
-    setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: `${post.username} — ${activity}`,
+        text: post.caption,
+        url: window.location.href,
+      }).catch(() => {});
+    }
   };
 
-  const handleAddComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = commentInput.trim();
+  const handleAddComment = () => {
+    const trimmed = commentDraft.trim();
     if (!trimmed) return;
     setComments((prev) => [
       ...prev,
-      { id: `c-${Date.now()}`, username: "you", text: trimmed },
+      { id: `c-${Date.now()}`, username: "You", text: trimmed },
     ]);
-    setCommentInput("");
+    setCommentDraft("");
   };
 
   return (
     <article className="bg-card border-b border-border flex flex-col items-center py-3">
       <div className="w-full max-w-[28rem] mx-auto px-3">
-        {/* Header */}
+        {/* Header: user + activity | zone */}
         <div className="flex items-center justify-between py-2">
           <div className="flex items-center gap-2">
             <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-semibold text-primary">
@@ -54,106 +60,99 @@ export default function FeedPost({ post }: FeedPostProps) {
               {post.username}
             </ProfileLink>
           </div>
-          <button
-            type="button"
-            className="p-0.5 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="More options"
-          >
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
+          <div className="text-right">
+            <p className="text-xs font-medium text-foreground">{activity}</p>
+            <p className="text-[10px] text-muted-foreground">{zone}</p>
+          </div>
         </div>
 
-        {/* Content area - vertical portrait placeholder */}
+        {/* Photo */}
         <div className="aspect-[3/4] w-full bg-muted flex items-center justify-center rounded-lg overflow-hidden">
-          <span className="text-3xl text-muted-foreground/50">📷</span>
+          {post.imageUrl ? (
+            <img src={post.imageUrl} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-3xl text-muted-foreground/50">📷</span>
+          )}
         </div>
 
-        {/* Interaction bar */}
-        <div className="flex items-center justify-between py-1.5">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleLike}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            aria-label={liked ? "Unlike" : "Like"}
-          >
-            <Heart
-              className={`w-5 h-5 ${liked ? "fill-destructive text-destructive" : ""}`}
-              strokeWidth={liked ? 0 : 2}
-            />
-          </button>
-          <button
-            type="button"
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Comment"
-          >
-            <MessageCircle className="w-5 h-5" />
-          </button>
-          <button
-            type="button"
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Share"
-          >
-            <Send className="w-5 h-5" />
-          </button>
-        </div>
-        <button
-          type="button"
-          className="text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Save"
-        >
-          <Bookmark className="w-5 h-5" />
-        </button>
+        {/* Caption + participants + timestamp */}
+        <div className="py-2 space-y-1">
+          <p className="text-xs text-foreground">{post.caption}</p>
+          {participants.length > 0 && (
+            <p className="text-[10px] text-muted-foreground">
+              With {participants.map((p) => p.name).join(", ")}
+            </p>
+          )}
+          <p className="text-[10px] text-muted-foreground">{post.timestamp}</p>
         </div>
 
-        {/* Engagement */}
-        <div className="pb-2 space-y-1">
-        {likeCount > 0 && (
-          <p className="text-xs font-semibold text-foreground">{likeCount} likes</p>
+        {/* Like, Comment, Share */}
+        <div className="flex items-center gap-6 py-2 border-t border-border">
+          <button
+            type="button"
+            onClick={() => setLiked(!liked)}
+            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Heart className={`h-4 w-4 ${liked ? "fill-red-500 text-red-500" : ""}`} />
+            <span className="text-xs">{likeCount}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowComments(!showComments)}
+            className={`flex items-center gap-1.5 transition-colors ${showComments ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <MessageCircle className="h-4 w-4" />
+            <span className="text-xs">{comments.length}</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleShare}
+            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Share2 className="h-4 w-4" />
+            <span className="text-xs">Share</span>
+          </button>
+        </div>
+
+        {/* Comments section */}
+        {showComments && (
+          <div className="pt-3 border-t border-border space-y-3">
+            <div className="space-y-2 max-h-32 overflow-y-auto">
+              {comments.map((c) => (
+                <div key={c.id} className="text-xs">
+                  {c.username === "You" ? (
+                    <span className="font-semibold text-foreground">{c.username}</span>
+                  ) : (
+                    <ProfileLink name={c.username} avatar={c.username.slice(0, 2).toUpperCase()} className="font-semibold text-foreground">
+                      {c.username}
+                    </ProfileLink>
+                  )}
+                  {" "}
+                  <span className="text-foreground">{c.text}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={commentDraft}
+                onChange={(e) => setCommentDraft(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
+                placeholder="Add a comment..."
+                className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+              <button
+                type="button"
+                onClick={handleAddComment}
+                disabled={!commentDraft.trim()}
+                className="shrink-0 w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
+                aria-label="Post comment"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         )}
-        <p className="text-xs line-clamp-2">
-          <ProfileLink name={post.username} avatar={post.userAvatar} className="font-semibold text-foreground">
-            {post.username}
-          </ProfileLink>{" "}
-          <span className="text-foreground">{post.caption}</span>
-        </p>
-        {comments.length > 2 && (
-          <button
-            type="button"
-            onClick={() => setShowAllComments((prev) => !prev)}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {showAllComments ? "Hide comments" : `View all ${comments.length} comment${comments.length !== 1 ? "s" : ""}`}
-          </button>
-        )}
-        {(showAllComments ? comments : comments.slice(-2)).map((c) => (
-          <p key={c.id} className="text-xs line-clamp-1">
-            <ProfileLink name={c.username} className="font-semibold text-foreground">
-              {c.username}
-            </ProfileLink>{" "}
-            <span className="text-foreground">{c.text}</span>
-          </p>
-        ))}
-        <p className="text-[10px] text-muted-foreground">{post.timestamp}</p>
-        </div>
-
-        {/* Comment input */}
-        <form onSubmit={handleAddComment} className="flex items-center gap-2 pt-1 border-t border-border">
-        <input
-          type="text"
-          placeholder="Add a comment..."
-          value={commentInput}
-          onChange={(e) => setCommentInput(e.target.value)}
-          className="flex-1 bg-transparent text-xs text-foreground placeholder:text-muted-foreground outline-none py-1.5"
-        />
-        <button
-          type="submit"
-          disabled={!commentInput.trim()}
-          className="text-xs font-semibold text-primary disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-80 transition-opacity"
-        >
-          Post
-        </button>
-        </form>
       </div>
     </article>
   );

@@ -12,22 +12,39 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, MapPin, Plus, UserPlus, Check, X, Calendar } from "lucide-react";
+import { ChevronDown, MapPin, Plus, UserPlus, Check, X, Calendar, Square } from "lucide-react";
 import BottomNav from "@/components/ui/BottomNav";
 import BubbleCard from "@/components/ui/BubbleCard";
 import CreateBubbleModal from "@/components/ui/CreateBubbleModal";
-import { mockBubbles, filterChips, mockFeedPosts } from "@/lib/mockData";
+import { mockBubbles, filterChips, mockFeedPosts, type FeedPost as FeedPostType } from "@/lib/mockData";
 import FeedPost from "@/components/FeedPost";
 import { useConnections } from "@/contexts/ConnectionsContext";
 import { useConversations } from "@/contexts/ConversationsContext";
 import { ProfileLink } from "@/components/ProfileLink";
+import EndEventModal from "@/components/EndEventModal";
+import type { BubbleConversation } from "@/contexts/ConversationsContext";
 
 export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState("Happening Now");
   const [createOpen, setCreateOpen] = useState(false);
+  const [endEventBubble, setEndEventBubble] = useState<BubbleConversation | null>(null);
+  const [feedPosts, setFeedPosts] = useState<FeedPostType[]>(mockFeedPosts);
   const router = useRouter();
+
+  const addPost = (post: Omit<FeedPostType, "id" | "timestamp"> & { imageUrl?: string }) => {
+    const { imageUrl, ...rest } = post;
+    setFeedPosts((prev) => [
+      {
+        ...rest,
+        ...(imageUrl && { imageUrl }),
+        id: `f-${Date.now()}`,
+        timestamp: "JUST NOW",
+      },
+      ...prev,
+    ]);
+  };
   const { filteredConnectionRequests, acceptRequest, rejectRequest } = useConnections();
-  const { joinedBubbles } = useConversations();
+  const { joinedBubbles, removeBubbleFromJoined } = useConversations();
 
   const filteredBubbles = useMemo(() => {
     if (activeFilter === "Happening Now") {
@@ -158,8 +175,20 @@ export default function HomePage() {
                     key={b.id}
                     className="flex items-center gap-2 p-2.5 rounded-lg bg-background/60 border border-border"
                   >
-                    <span className="text-lg">{b.avatar}</span>
-                    <span className="text-sm font-medium text-foreground truncate flex-1 min-w-0">{b.name}</span>
+                    <span className="text-lg shrink-0">{b.avatar}</span>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-sm font-medium text-foreground truncate block">{b.name}</span>
+                      {b.duration && (
+                        <span className="text-[10px] text-muted-foreground">{b.duration}</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setEndEventBubble(b)}
+                      className="shrink-0 w-8 h-8 rounded-full bg-destructive/20 text-destructive flex items-center justify-center hover:bg-destructive/30 transition-colors"
+                      aria-label="End event"
+                    >
+                      <Square className="w-3.5 h-3.5 fill-current" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -177,6 +206,16 @@ export default function HomePage() {
       </button>
 
       <CreateBubbleModal open={createOpen} onClose={() => setCreateOpen(false)} />
+      {endEventBubble && (
+        <EndEventModal
+          bubble={endEventBubble}
+          onAddPost={addPost}
+          onClose={() => {
+            removeBubbleFromJoined(endEventBubble.id);
+            setEndEventBubble(null);
+          }}
+        />
+      )}
       <BottomNav />
     </div>
   );

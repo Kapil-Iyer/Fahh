@@ -3,8 +3,8 @@
 /**
  * CREATE BUBBLE MODAL - Start new activity
  * -----------------------------------------------------------------------------
- * Form: title, category, description. Currently no submit→API.
- * API: POST /api/bubbles with form data. Redirect or refresh bubbles list.
+ * Schema: activity, zone, start_time, duration_minutes, max_members, description
+ * API: POST /api/bubbles with payload. No submit→API yet.
  * -----------------------------------------------------------------------------
  */
 
@@ -15,7 +15,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { X } from "lucide-react";
 
-const categories = ["Sports", "Casual", "Study", "Music", "Gaming", "Outdoors", "Food", "Arts"];
+const activityOptions = ["Basketball", "Study", "Gaming", "Coffee", "Volleyball", "Soccer", "Swimming", "LeetCode", "Hike", "Board Games", "Open Mic"];
+const zoneOptions = ["PAC", "DC", "SLC", "EV3", "MC", "Columbia Fields", "Laurel Creek"];
 
 interface Props {
   open: boolean;
@@ -23,9 +24,22 @@ interface Props {
 }
 
 export default function CreateBubbleModal({ open, onClose }: Props) {
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [activity, setActivity] = useState("");
+  const [zone, setZone] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [durationMinutes, setDurationMinutes] = useState("");
+  const [maxMembers, setMaxMembers] = useState("");
+  const [description, setDescription] = useState("");
 
   if (!open) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Payload shape for backend:
+    // { activity, zone, start_time: ISO string, duration_minutes: number, max_members: number, description }
+    // TODO: POST /api/bubbles
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 bg-foreground/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
@@ -39,49 +53,104 @@ export default function CreateBubbleModal({ open, onClose }: Props) {
             <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
-        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onClose(); }}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <Label>Activity Title</Label>
-            <Input placeholder="e.g. Pickup Soccer" className="h-11 rounded-xl" required />
-          </div>
-          <div className="space-y-2">
-            <Label>Category</Label>
+            <Label>Activity</Label>
             <div className="flex flex-wrap gap-2">
-              {categories.map((cat) => (
+              {activityOptions.map((a) => (
                 <button
-                  key={cat}
+                  key={a}
                   type="button"
-                  onClick={() => setSelectedCategory(cat)}
+                  onClick={() => setActivity(activity === a ? "" : a)}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                    selectedCategory === cat
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground hover:bg-accent"
+                    activity === a ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-accent"
                   }`}
                 >
-                  {cat}
+                  {a}
                 </button>
               ))}
             </div>
+            <Input
+              placeholder="Or type custom activity"
+              value={activity}
+              onChange={(e) => setActivity(e.target.value)}
+              className="h-11 rounded-xl mt-2"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Zone</Label>
+            <div className="flex flex-wrap gap-2">
+              {zoneOptions.map((z) => (
+                <button
+                  key={z}
+                  type="button"
+                  onClick={() => setZone(zone === z ? "" : z)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    zone === z ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-accent"
+                  }`}
+                >
+                  {z}
+                </button>
+              ))}
+            </div>
+            <Input
+              placeholder="Or type zone"
+              value={zone}
+              onChange={(e) => setZone(e.target.value)}
+              className="h-11 rounded-xl mt-2"
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Location</Label>
-              <Input placeholder="Where?" className="h-11 rounded-xl" />
+              <Label>Start Time</Label>
+              <Input
+                type="datetime-local"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="h-11 rounded-xl"
+                required
+              />
             </div>
             <div className="space-y-2">
-              <Label>Max People</Label>
-              <Input type="number" placeholder="6" min={2} max={50} className="h-11 rounded-xl" />
+              <Label>Duration (minutes)</Label>
+              <Input
+                type="number"
+                placeholder="60"
+                min={15}
+                max={480}
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(e.target.value)}
+                className="h-11 rounded-xl"
+                required
+              />
             </div>
           </div>
           <div className="space-y-2">
-            <Label>When</Label>
-            <Input type="datetime-local" className="h-11 rounded-xl" />
+            <Label>Max Members</Label>
+            <Input
+              type="number"
+              placeholder="6"
+              min={2}
+              max={50}
+              value={maxMembers}
+              onChange={(e) => setMaxMembers(e.target.value)}
+              className="h-11 rounded-xl"
+              required
+            />
           </div>
           <div className="space-y-2">
             <Label>Description</Label>
-            <Textarea placeholder="What's the plan?" className="rounded-xl resize-none" rows={3} />
+            <Textarea
+              placeholder="What's the plan?"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="rounded-xl resize-none"
+              rows={3}
+            />
           </div>
-          <Button type="submit" className="w-full h-12 rounded-xl text-base font-semibold">Create Bubble 🫧</Button>
+          <Button type="submit" className="w-full h-12 rounded-xl text-base font-semibold">
+            Create Bubble 🫧
+          </Button>
         </form>
       </div>
     </div>
