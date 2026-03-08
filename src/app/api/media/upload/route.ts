@@ -1,5 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
+import { getAuthUser } from '@/lib/auth';
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
 // Configure cloudinary with environment variables
 cloudinary.config({
@@ -8,15 +10,45 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthenticated' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
-    const { image, activity, location, date, memberCount, filterStyle } = body;
+    const { image, activity, location, date, memberCount, filterStyle, bubble_id } = body ?? {};
+
+    if (!bubble_id) {
+      return NextResponse.json(
+        { success: false, error: 'bubble_id required' },
+        { status: 400 }
+      );
+    }
+
+    const admin = getSupabaseAdmin();
+    const { data: membership } = await admin
+      .from('bubble_members')
+      .select('user_id')
+      .eq('bubble_id', bubble_id)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!membership) {
+      return NextResponse.json(
+        { success: false, error: 'Not a member of this bubble' },
+        { status: 403 }
+      );
+    }
 
     // Validate request body
     if (!image || !activity || !location || !date || memberCount === undefined || !filterStyle) {
       return NextResponse.json(
-        { error: 'Missing required fields: image, activity, location, date, memberCount, filterStyle' },
+        { success: false, error: 'Missing required fields: image, activity, location, date, memberCount, filterStyle' },
         { status: 400 }
       );
     }
@@ -76,11 +108,28 @@ export async function POST(request: Request) {
 
     const cloudinary_url = uploadResponse.secure_url;
 
-    return NextResponse.json({ success: true, cloudinary_url });
+    const { error: insertError } = await admin.from('meetup_photos').insert({
+      bubble_id,
+      user_id: user.id,
+      cloudinary_url,
+    });
+
+    if (insertError) {
+      console.error('meetup_photos insert error:', insertError);
+      return NextResponse.json(
+        { success: false, error: 'Failed to save moment' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: { cloudinary_url },
+    });
   } catch (error: unknown) {
     console.error('Media upload error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Error occurred during file upload' },
+      { success: false, error: error instanceof Error ? error.message : 'Error occurred during file upload' },
       { status: 500 }
     );
   }

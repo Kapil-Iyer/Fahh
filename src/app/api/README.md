@@ -12,6 +12,9 @@
 | GET | `/api/bubbles/mine` | List bubbles the current user joined (auth required) |
 | GET | `/api/bubbles/[id]/messages` | List messages (auth + bubble member required) |
 | POST | `/api/bubbles/[id]/messages` | Send message (auth + member); body: `{ content }` (max 500 chars) |
+| POST | `/api/bubbles/[id]/confirm` | End event: set bubble status to expired (auth + member) |
+| POST | `/api/media/upload` | Upload moment image → Cloudinary, insert meetup_photos (auth + member); body: `bubble_id`, image, activity, location, date, memberCount, filterStyle |
+| GET | `/api/moments` | List Wander Moments (meetup_photos) for feed |
 
 Auth: Supabase Auth (email OTP). Protected routes expect `Authorization: Bearer <access_token>`.
 
