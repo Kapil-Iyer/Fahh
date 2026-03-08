@@ -1,21 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+
+const WATERLOO_EMAIL_SUFFIX = "@uwaterloo.ca";
 
 /**
  * POST /api/auth/signup
- * Accepts { name, email, password } and returns success (mock for now).
- * Connect your real auth/database later.
+ * Accept { email }. Reject non @uwaterloo.ca. Send OTP via Supabase.
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, password } = body ?? {};
-    if (!name || !email || !password) {
+    const { email } = body ?? {};
+    if (!email || typeof email !== "string") {
       return NextResponse.json(
-        { success: false, error: "Name, email and password required" },
+        { success: false, error: "Email required" },
         { status: 400 }
       );
     }
-    // Mock: always succeed. Replace with real signup (e.g. create user in DB).
+    if (!email.endsWith(WATERLOO_EMAIL_SUFFIX)) {
+      return NextResponse.json(
+        { success: false, error: "Only @uwaterloo.ca emails are allowed" },
+        { status: 400 }
+      );
+    }
+
+    const { error } = await supabase.auth.signInWithOtp({ email });
+
+    if (error) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json(
