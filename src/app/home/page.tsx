@@ -3,8 +3,9 @@
 /**
  * HOME PAGE - API INTEGRATION REFERENCE
  * -----------------------------------------------------------------------------
- * DATA SOURCES (replace with API):
- * - mockBubbles, filterChips, mockFeedPosts → lib/mockData.ts
+ * DATA SOURCES:
+ * - Moments feed → GET /api/moments (meetup_photos)
+ * - mockBubbles, filterChips → lib/mockData.ts
  * - connectionRequests, acceptRequest, rejectRequest → ConnectionsContext
  * - joinedBubbles → ConversationsContext (bubbles user joined from map)
  * -----------------------------------------------------------------------------
@@ -16,7 +17,7 @@ import { ChevronDown, MapPin, Plus, UserPlus, Check, X, Calendar, Square } from 
 import BottomNav from "@/components/ui/BottomNav";
 import BubbleCard from "@/components/ui/BubbleCard";
 import CreateBubbleModal from "@/components/ui/CreateBubbleModal";
-import { mockBubbles, filterChips, mockFeedPosts, type FeedPost as FeedPostType } from "@/lib/mockData";
+import { mockBubbles, filterChips, type FeedPost as FeedPostType } from "@/lib/mockData";
 import FeedPost from "@/components/FeedPost";
 import { useConnections } from "@/contexts/ConnectionsContext";
 import { useConversations } from "@/contexts/ConversationsContext";
@@ -34,12 +35,47 @@ type UpcomingBubble = {
   recommendationReason?: string;
 };
 
+function formatMomentTime(iso: string): string {
+  const d = new Date(iso);
+  const diffMs = Date.now() - d.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
 export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState("Happening Now");
   const [createOpen, setCreateOpen] = useState(false);
   const [endEventBubble, setEndEventBubble] = useState<BubbleConversation | null>(null);
-  const [feedPosts, setFeedPosts] = useState<FeedPostType[]>(mockFeedPosts);
+  const [feedPosts, setFeedPosts] = useState<FeedPostType[]>([]);
   const [upcomingForYou, setUpcomingForYou] = useState<UpcomingBubble[]>(mockBubbles.slice(0, 6).map((b) => ({ ...b, recommendationReason: "Loading..." })));
+
+  useEffect(() => {
+    fetch("/api/moments")
+      .then((res) => res.json())
+      .then((data: { success?: boolean; data?: Array<{ id: string; cloudinary_url: string; created_at: string }> }) => {
+        if (data?.success && Array.isArray(data.data)) {
+          const mapped: FeedPostType[] = data.data.map((m) => ({
+            id: m.id,
+            username: "Wanderer",
+            userAvatar: "✨",
+            activity: "Wander Moment",
+            zone: "—",
+            caption: "#wandermoment",
+            timestamp: formatMomentTime(m.created_at),
+            participants: [],
+            likes: 0,
+            comments: [],
+            imageUrl: m.cloudinary_url,
+          }));
+          setFeedPosts(mapped);
+        }
+      })
+      .catch(() => setFeedPosts([]));
+  }, []);
 
   useEffect(() => {
     fetch("/api/recommendations")
@@ -150,9 +186,13 @@ export default function HomePage() {
         <div className="mt-8 -mx-2 border-t border-border">
           <h2 className="text-sm font-semibold text-foreground mb-3 px-4 sm:px-0 pt-4">Recent Moments</h2>
           <div className="space-y-0">
-            {mockFeedPosts.map((post) => (
-              <FeedPost key={post.id} post={post} />
-            ))}
+            {feedPosts.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 px-4">No moments yet. End an event and post one!</p>
+            ) : (
+              feedPosts.map((post) => (
+                <FeedPost key={post.id} post={post} />
+              ))
+            )}
           </div>
         </div>
       </div>

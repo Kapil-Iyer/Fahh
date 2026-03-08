@@ -3,13 +3,14 @@
 /**
  * END EVENT MODAL - Two-step flow
  * -----------------------------------------------------------------------------
- * Card 1: Take picture, caption, Save to device | Save and post
+ * Card 1: Take picture, caption, Save to device | Save and post (→ /api/media/upload, then /api/bubbles/[id]/confirm)
  * Card 2: People you hung out with + "Wanna wander?" (connect request)
  * -----------------------------------------------------------------------------
  */
 
 import { useRef, useState } from "react";
 import { ArrowLeft, Camera, Download, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import type { BubbleConversation } from "@/contexts/ConversationsContext";
 import { useConnections } from "@/contexts/ConnectionsContext";
 import { getProfileByName, getOrCreateProfile } from "@/lib/mockData";
@@ -18,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProfileLink } from "@/components/ProfileLink";
+import { supabase } from "@/lib/supabase";
 
 type EndEventModalProps = {
   bubble: BubbleConversation;
@@ -30,7 +32,9 @@ export default function EndEventModal({ bubble, onClose, onAddPost }: EndEventMo
   const [step, setStep] = useState<"photo" | "people">("photo");
   const [caption, setCaption] = useState("");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [filter, setFilter] = useState<"polaroid" | "vintage" | "scipia" | null>(null);
+  const [posting, setPosting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const participants = bubble.participants ?? [];
@@ -43,8 +47,8 @@ export default function EndEventModal({ bubble, onClose, onAddPost }: EndEventMo
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith("image/")) {
-      const url = URL.createObjectURL(file);
-      setPhotoUrl(url);
+      setPhotoFile(file);
+      setPhotoUrl(URL.createObjectURL(file));
     }
     e.target.value = "";
   };
@@ -59,18 +63,85 @@ export default function EndEventModal({ bubble, onClose, onAddPost }: EndEventMo
     setStep("people");
   };
 
-  const handleSaveAndPost = () => {
-    const participants = bubble.participants ?? [];
-    onAddPost({
-      username: "you",
-      userAvatar: "JD",
-      activity: bubble.name,
-      zone: bubble.zone,
-      participants: participants.map((p) => ({ name: p.name, avatar: p.avatar })),
-      caption: caption.trim() || `${bubble.name} 💫`,
-      imageUrl: photoUrl ?? undefined,
-    });
-    setStep("people");
+  const handleSaveAndPost = async () => {
+    if (!photoFile) {
+      toast.error("Please take or select a photo first.");
+      return;
+    }
+
+    const bubbleId = bubble.id.replace(/^bubble-/, "");
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) {
+      toast.error("Please sign in to post a moment.");
+      return;
+    }
+
+    setPosting(true);
+    try {
+      const base64Image = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result);
+        };
+        reader.onerror = () => reject(new Error("Failed to read image"));
+        reader.readAsDataURL(photoFile);
+      });
+
+      const participants = bubble.participants ?? [];
+      const filterStyle =
+        filter === "vintage" ? "sepia" : filter === "scipia" ? "grayscale" : "polaroid";
+
+      const uploadRes = await fetch("/api/media/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          bubble_id: bubbleId,
+          image: base64Image,
+          activity: bubble.name,
+          location: bubble.zone ?? "—",
+          date: new Date().toLocaleDateString(undefined, { dateStyle: "medium" }),
+          memberCount: participants.length,
+          filterStyle,
+        }),
+      });
+
+      const uploadJson = await uploadRes.json();
+      if (!uploadRes.ok || !uploadJson.success) {
+        toast.error(uploadJson.error ?? "Upload failed");
+        return;
+      }
+
+      const cloudinaryUrl = uploadJson.data?.cloudinary_url ?? uploadJson.cloudinary_url;
+
+      const confirmRes = await fetch(`/api/bubbles/${bubbleId}/confirm`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!confirmRes.ok) {
+        toast.error("Event could not be ended.");
+        return;
+      }
+
+      onAddPost({
+        username: "you",
+        userAvatar: "JD",
+        activity: bubble.name,
+        zone: bubble.zone ?? "—",
+        participants: participants.map((p) => ({ name: p.name, avatar: p.avatar })),
+        caption: caption.trim() || `${bubble.name} 💫`,
+        imageUrl: cloudinaryUrl,
+      });
+      setStep("people");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setPosting(false);
+    }
   };
 
   const handleWannaWander = (name: string, avatar: string) => {
@@ -176,9 +247,10 @@ export default function EndEventModal({ bubble, onClose, onAddPost }: EndEventMo
                 size="lg"
                 className="w-full rounded-xl gap-2 h-12 text-base"
                 onClick={handleSaveAndPost}
+                disabled={posting}
               >
                 <Share2 className="w-5 h-5" />
-                Save and post
+                {posting ? "Posting…" : "Save and post"}
               </Button>
             </div>
           </div>
