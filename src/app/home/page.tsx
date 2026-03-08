@@ -37,10 +37,8 @@ type UpcomingBubble = {
 export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState("Happening Now");
   const [createOpen, setCreateOpen] = useState(false);
-<<<<<<< HEAD
   const [endEventBubble, setEndEventBubble] = useState<BubbleConversation | null>(null);
   const [feedPosts, setFeedPosts] = useState<FeedPostType[]>(mockFeedPosts);
-=======
   const [upcomingForYou, setUpcomingForYou] = useState<UpcomingBubble[]>(mockBubbles.slice(0, 6).map((b) => ({ ...b, recommendationReason: "Loading..." })));
 
   useEffect(() => {
@@ -51,7 +49,6 @@ export default function HomePage() {
       })
       .catch(() => {});
   }, []);
->>>>>>> 3bb449ba1467449f4f65761053831a1974c0da70
   const router = useRouter();
 
   const addPost = (post: Omit<FeedPostType, "id" | "timestamp"> & { imageUrl?: string }) => {
