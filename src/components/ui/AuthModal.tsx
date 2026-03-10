@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { Mail, User } from "lucide-react";
 
-const OTP_DISABLED = true;
+const OTP_DISABLED = false;
 
 export default function AuthModal() {
   const [mode, setMode] = useState<"choice" | "signup" | "login" | "verify">("choice");
