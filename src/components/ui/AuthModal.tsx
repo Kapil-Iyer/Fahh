@@ -1,8 +1,7 @@
 "use client";
 
 /**
- * AUTH MODAL - Auth disabled for now; skip to app (anonymous + ensure-profile).
- * When re-enabled: only @uwaterloo.ca (enforced in API + Supabase).
+ * AUTH MODAL - No magic link (Supabase limit 2 emails/hr). Only @uwaterloo.ca: validate in UI, then anonymous sign-in + redirect.
  */
 
 import { useState } from "react";
@@ -12,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { Mail, User } from "lucide-react";
 
-const OTP_DISABLED = false;
+const OTP_DISABLED = true;
+const WATERLOO_SUFFIX = "@uwaterloo.ca";
 
 export default function AuthModal() {
   const [mode, setMode] = useState<"choice" | "signup" | "login" | "verify">("choice");
@@ -58,12 +58,20 @@ export default function AuthModal() {
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    const form = e.currentTarget;
+    const email = (form.elements.namedItem("email") as HTMLInputElement)?.value?.trim().toLowerCase();
     if (OTP_DISABLED) {
+      if (!email) {
+        setError("Email required");
+        return;
+      }
+      if (!email.endsWith(WATERLOO_SUFFIX)) {
+        setError("Only @uwaterloo.ca emails allowed");
+        return;
+      }
       await signInAnonymouslyAndContinue("onboarding");
       return;
     }
-    const form = e.currentTarget;
-    const email = (form.elements.namedItem("email") as HTMLInputElement)?.value?.trim();
     if (!email) return;
     setLoading(true);
     try {
@@ -111,12 +119,20 @@ export default function AuthModal() {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    const form = e.currentTarget;
+    const email = (form.elements.namedItem("loginEmail") as HTMLInputElement)?.value?.trim().toLowerCase();
     if (OTP_DISABLED) {
+      if (!email) {
+        setError("Email required");
+        return;
+      }
+      if (!email.endsWith(WATERLOO_SUFFIX)) {
+        setError("Only @uwaterloo.ca emails allowed");
+        return;
+      }
       await signInAnonymouslyAndContinue("home");
       return;
     }
-    const form = e.currentTarget;
-    const email = (form.elements.namedItem("loginEmail") as HTMLInputElement)?.value?.trim();
     if (!email) return;
     setLoading(true);
     try {
@@ -218,7 +234,7 @@ export default function AuthModal() {
             </div>
           </div>
           {!OTP_DISABLED && <p className="text-xs text-white/50">We&apos;ll send a one-time code to your email. No password needed.</p>}
-          {OTP_DISABLED && <p className="text-xs text-amber-400/90">Sign-in skipped for now. You can use the app without verifying.</p>}
+          {OTP_DISABLED && <p className="text-xs text-amber-400/90">Only @uwaterloo.ca. No email or magic link sent.</p>}
           <Button
             type="submit"
             className="w-full h-12 rounded-xl text-base font-semibold bg-cyan-500 hover:bg-cyan-400 text-cyan-950 shadow-lg shadow-cyan-500/25 disabled:opacity-50"
@@ -271,7 +287,7 @@ export default function AuthModal() {
             </div>
           </div>
           {!OTP_DISABLED && <p className="text-xs text-white/50">We&apos;ll send a one-time code to your email. No password needed.</p>}
-          {OTP_DISABLED && <p className="text-xs text-amber-400/90">Sign-in skipped for now. You can use the app without verifying.</p>}
+          {OTP_DISABLED && <p className="text-xs text-amber-400/90">Only @uwaterloo.ca. No email or magic link sent.</p>}
           <Button
             type="submit"
             className="w-full h-12 rounded-xl text-base font-semibold bg-cyan-500 hover:bg-cyan-400 text-cyan-950 shadow-lg shadow-cyan-500/25 disabled:opacity-50"
